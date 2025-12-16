@@ -1,0 +1,17 @@
+C:\Projects\Finianceable\Finianceable\bin\Debug\net8.0-windows\Finianceable.exe
+C:\Projects\Finianceable\Finianceable\bin\Debug\net8.0-windows\Finianceable.deps.json
+C:\Projects\Finianceable\Finianceable\bin\Debug\net8.0-windows\Finianceable.runtimeconfig.json
+C:\Projects\Finianceable\Finianceable\bin\Debug\net8.0-windows\Finianceable.dll
+C:\Projects\Finianceable\Finianceable\bin\Debug\net8.0-windows\Finianceable.pdb
+C:\Projects\Finianceable\Finianceable\obj\Debug\net8.0-windows\Finianceable.Form1.resources
+C:\Projects\Finianceable\Finianceable\obj\Debug\net8.0-windows\Finianceable.csproj.GenerateResource.cache
+C:\Projects\Finianceable\Finianceable\obj\Debug\net8.0-windows\Finianceable.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\Finianceable\Finianceable\obj\Debug\net8.0-windows\Finianceable.AssemblyInfoInputs.cache
+C:\Projects\Finianceable\Finianceable\obj\Debug\net8.0-windows\Finianceable.AssemblyInfo.cs
+C:\Projects\Finianceable\Finianceable\obj\Debug\net8.0-windows\Finianceable.csproj.CoreCompileInputs.cache
+C:\Projects\Finianceable\Finianceable\obj\Debug\net8.0-windows\Finianceable.sourcelink.json
+C:\Projects\Finianceable\Finianceable\obj\Debug\net8.0-windows\Finianceable.dll
+C:\Projects\Finianceable\Finianceable\obj\Debug\net8.0-windows\refint\Finianceable.dll
+C:\Projects\Finianceable\Finianceable\obj\Debug\net8.0-windows\Finianceable.pdb
+C:\Projects\Finianceable\Finianceable\obj\Debug\net8.0-windows\Finianceable.genruntimeconfig.cache
+C:\Projects\Finianceable\Finianceable\obj\Debug\net8.0-windows\ref\Finianceable.dll

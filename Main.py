@@ -1,4 +1,4 @@
-import PullingData, os
+import os
 from nicegui import events, ui
 from uuid import uuid4
 from MiscMethods import labelToDate, monthToWord
