@@ -1,0 +1,19 @@
+{
+    "fifth_third": {
+        "format": ["date", "info", "check", "value"],
+        "reverseValues": false,
+        "header": true
+    },
+
+    "american_express": {
+        "format": ["date", "info", "value"],
+        "reverseValues": true,
+        "header": true
+    },
+
+    "truecc": {
+        "format": ["transaction_id","posting_date","date","transaction_type","value","check_number","reference_number","info","transaction_category","type","balance","memo","extended_description"],
+        "reverseValues": true,
+        "header": true
+    }
+}
