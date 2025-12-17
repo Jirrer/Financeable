@@ -16,6 +16,7 @@ def createData() -> list:
 
     return output
 
+# Creates temporary text file that user can add labels to
 def pushData(data: list):
     with open(FILE_LOCATION, "w", newline="", encoding="utf-8") as file:
         for line in data:

@@ -1,4 +1,4 @@
-import joblib, os, json, csv, re
+import joblib, os, json, csv, sys
 
 with open('supported_banks.json', 'r', encoding='utf-8') as file:
     jsonData = json.load(file)
@@ -11,40 +11,44 @@ class Purchase:
         self.info = purchaseInfo
 
 class Month_Report:
-    def __init__(self, date):
+    def __init__(self, date: str, loss: float, gain: float, profit: float, purchases: list):
         self.date = date
-        self.loss = None
-        self.gain = None
-        self.profit_loss = None
-        self.categories = {}
+        self.loss = loss
+        self.gain = gain
+        self.profit_loss = profit
+        self.categories = self.getCategories(purchases)
 
-    def updateCategories(self, purchases: list):
+    def getCategories(self, purchases: list):
+        output = {}
+
         for purchase in purchases:
-            if purchase.category in self.categories:
-                self.categories[purchase.category] += float(purchase.value)
+            if purchase.category in output:
+                output[purchase.category] += float(purchase.value)
             else:
-                self.categories[purchase.category] = float(purchase.value)
+                output[purchase.category] = float(purchase.value)
 
-def main(vectorizer, clf, monthYear: str):
+        return output
+
+def main(vectorizer, clf, monthYear: str):    
     csvFileLocations = getFileLocations()
-    
-    rawLosses, rawGains = getRawPurchases(csvFileLocations)
+
+    rawPurchases = getRawPurchases(csvFileLocations)
+
+    # Only losses should be counted when created spending habbit charts
+    rawGains, rawLosses = getRawGains(rawPurchases), getRawLosses(rawPurchases)
 
     categorizedPurchases = categorizePurchases(rawLosses, clf, vectorizer)
 
-    monthReport = Month_Report(monthYear)
+    monthLosses, monthGains = float(getMonthLoss(categorizedPurchases)), float(getMonthGain(rawGains))
 
-    monthReport.loss = getLoss(categorizedPurchases)
+    profit = monthGains + monthLosses
 
-    monthReport.gain = getGain(rawGains)
+    monthReport = Month_Report(monthYear, monthLosses, monthGains, profit, categorizedPurchases)
 
-    monthReport.profit_loss = monthReport.gain + monthReport.loss
+    if pushData(monthReport):
+        print(" * Ran Month Report")
 
-    monthReport.updateCategories(categorizedPurchases)
-
-    pushData(monthReport)
-
-def getFileLocations() -> list:
+def getFileLocations() -> list[tuple[str, str]]:
     output = []
 
     pdfLocation = 'ReportData'
@@ -67,21 +71,24 @@ def pullBankName(fileName: str) -> str:
 
     return "Error pulling bank name"
 
-def getRawPurchases(csvFiles: list):
-    losses, gains = [], []
-    
+def getRawPurchases(csvFiles: list[tuple[int, str]]):
+    purchases = []
+
     for bank, filePath in csvFiles:
         with open(filePath, 'r', newline='') as file:
             reader = csv.reader(file)
 
-            next(reader)
+            if jsonData[bank]['header']:
+                next(reader) 
 
             dateIndex, infoIndex, valueIndex = None, None, None
 
             bankFormat = jsonData[bank]['format']
 
             reversePayents = jsonData[bank]['reverseValues']
-            
+
+            # Every bank's csv reports will have different number and order of columns
+            # These need to be stated in "supported_banks.json"
             for index in range(len(bankFormat)):
                 if bankFormat[index] == 'date': dateIndex = index
                 elif bankFormat[index] == 'info': infoIndex = index
@@ -91,29 +98,50 @@ def getRawPurchases(csvFiles: list):
                 rowDate = row[dateIndex]
                 rowInfo = row[infoIndex]
 
-                if (reversePayents):
+                if (reversePayents): # Some banks include a "-" for their purchases' values
                     rowValue = f'-{row[valueIndex]}'
                 else:
                     rowValue = row[valueIndex]
 
-                if float(rowValue) < 0:
-                    losses.append(Purchase(rowValue, None, rowDate, rowInfo))
-                else:
-                    gains.append(Purchase(rowValue, None, rowDate, rowInfo))
+                purchases.append((rowValue, rowDate, rowInfo))
 
-    return (losses, gains)
+    return purchases
+
+def getRawLosses(rawPurchases):
+    losses = []
+
+    for purchaseTuple in rawPurchases:
+        if float(purchaseTuple[0]) < 0:
+            losses.append(Purchase(purchaseTuple[0], None, purchaseTuple[1], purchaseTuple[2]))
+
+    return losses
+
+def getRawGains(rawPurchases):
+    gains = []
+
+    for purchaseTuple in rawPurchases:
+        if float(purchaseTuple[0]) >= 0:
+            gains.append(Purchase(purchaseTuple[0], None, purchaseTuple[1], purchaseTuple[2]))
+
+    return gains
 
 def categorizePurchases(purchases: list, clf, vectorizer) -> list:
-    infoStrs = [purchase.info for purchase in purchases]
+    purchaseDescriptions = [purchase.info for purchase in purchases]
 
-    strsCategories = clf.predict(vectorizer.transform(infoStrs))
+    try:
+        strsCategories = clf.predict(vectorizer.transform(purchaseDescriptions))
+    
+    except ValueError as e:
+        if "Found array with 0 sample(s)" in e.args[0]:
+            print("Empty Data Folder - Script Ended Early")
+            sys.exit(2)
 
     for index in range(len(purchases)):
         purchases[index].category = strsCategories[index]
 
     return purchases
 
-def getLoss(puchasesInput: list) -> float:
+def getMonthLoss(puchasesInput: list) -> float:
     total = 0.0
 
     for purchase in puchasesInput:
@@ -121,7 +149,7 @@ def getLoss(puchasesInput: list) -> float:
     
     return total
 
-def getGain(purchasesInput: list):
+def getMonthGain(purchasesInput: list):
     total = 0.0
     
     for purchase in purchasesInput:
@@ -134,6 +162,7 @@ def isFloat(string: str):
     try:
         float(string)
         return '.' in string
+    
     except ValueError:
         return False
 
@@ -165,10 +194,26 @@ def pushData(report: Month_Report):
         json.dump(data, f, indent=4)
 
     return True
+
+def clearDataFiles():
+    filePaths = [path[1] for path in getFileLocations()]
+    
+    for path in filePaths:
+        os.remove(path)
     
 if __name__ == "__main__":
-    vectorizer = joblib.load('data\\vectorizer.joblib'); print("Loaded vectorizer.")
+    if len(sys.argv) <= 1: print("Month was not included"); sys.exit(3)
 
-    clf = joblib.load('data\\classifier.joblib'); print("Loaded clf.")
+    month = sys.argv[1]
 
-    main(vectorizer, clf, "12/2025"); print("Ran Report.")
+    vectorizer = joblib.load('data\\vectorizer.joblib'); print(" * Loaded vectorizer")
+
+    clf = joblib.load('data\\classifier.joblib'); print(" * Loaded clf")
+
+    main(vectorizer, clf, month); print(" * Script Ended")
+
+    if len(sys.argv) >= 3:
+        for tag in sys.argv[2:]:
+            match tag.lower():
+                case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
+                case _: print(f"Tag '{tag}' is not recognized and was not ran")
