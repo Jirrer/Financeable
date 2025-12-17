@@ -6,6 +6,23 @@ from MiscMethods import labelToDate, monthToWord
 # To-Do: let user choose bank (links to websites),
 # auto save the file name (bank name # current time)
 
+
+# using Python.Runtime;
+
+# PythonEngine.Initialize();
+
+# using (Py.GIL())
+# {
+#     dynamic joblib = Py.Import("joblib");
+#     dynamic vectorizer = joblib.load("data/vectorizer.joblib");
+#     dynamic clf = joblib.load("data/classifier.joblib");
+
+#     dynamic mainModule = Py.Import("main");
+#     mainModule.run(vectorizer, clf, "12/2025");
+# }
+
+# PythonEngine.Shutdown();
+
 # File Paths
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'pdfs')
 

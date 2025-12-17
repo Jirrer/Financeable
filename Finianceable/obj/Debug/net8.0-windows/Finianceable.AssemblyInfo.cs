@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Finianceable")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+adaf5acbd880567de6d2bc4a38aea6a4c04243b1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+aaaf9f20c60259bfd6de11adf9dbe353f9e06384")]
 [assembly: System.Reflection.AssemblyProductAttribute("Finianceable")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Finianceable")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
