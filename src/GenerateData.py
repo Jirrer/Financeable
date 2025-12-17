@@ -11,38 +11,39 @@ class Purchase:
         self.info = purchaseInfo
 
 class Month_Report:
-    def __init__(self, date):
+    def __init__(self, date: str, loss: float, gain: float, profit: float, purchases: list):
         self.date = date
-        self.loss = None
-        self.gain = None
-        self.profit_loss = None
-        self.categories = {}
+        self.loss = loss
+        self.gain = gain
+        self.profit_loss = profit
+        self.categories = self.getCategories(purchases)
 
-    def updateCategories(self, purchases: list):
+    def getCategories(self, purchases: list):
+        output = {}
+
         for purchase in purchases:
-            if purchase.category in self.categories:
-                self.categories[purchase.category] += float(purchase.value)
+            if purchase.category in output:
+                output[purchase.category] += float(purchase.value)
             else:
-                self.categories[purchase.category] = float(purchase.value)
+                output[purchase.category] = float(purchase.value)
 
-def main(vectorizer, clf, monthYear: str):
+def main(vectorizer, clf, monthYear: str):    
     csvFileLocations = getFileLocations()
-    
-    rawLosses, rawGains = getRawPurchases(csvFileLocations)
+
+    rawPurchases = getRawPurchases(csvFileLocations)
+
+    rawGains, rawLosses = getRawGains(rawPurchases), getRawLosses(rawPurchases)
 
     categorizedPurchases = categorizePurchases(rawLosses, clf, vectorizer)
 
-    monthReport = Month_Report(monthYear)
+    monthLosses, monthGains = float(getMonthLoss(categorizedPurchases)), float(getMonthGain(rawGains))
 
-    monthReport.loss = getLoss(categorizedPurchases)
+    profit = monthGains + monthLosses
 
-    monthReport.gain = getGain(rawGains)
+    monthReport = Month_Report(monthYear, monthLosses, monthGains, profit, categorizedPurchases)
 
-    monthReport.profit_loss = monthReport.gain + monthReport.loss
-
-    monthReport.updateCategories(categorizedPurchases)
-
-    pushData(monthReport)
+    if pushData(monthReport):
+        print(" * Ran Month Report")
 
 def getFileLocations() -> list:
     output = []
@@ -68,20 +69,20 @@ def pullBankName(fileName: str) -> str:
     return "Error pulling bank name"
 
 def getRawPurchases(csvFiles: list):
-    losses, gains = [], []
-    
+    purchases = []
+
     for bank, filePath in csvFiles:
         with open(filePath, 'r', newline='') as file:
             reader = csv.reader(file)
 
-            next(reader)
+            next(reader) # To-Do: check supported banks if there is a header or not
 
             dateIndex, infoIndex, valueIndex = None, None, None
 
             bankFormat = jsonData[bank]['format']
 
             reversePayents = jsonData[bank]['reverseValues']
-            
+
             for index in range(len(bankFormat)):
                 if bankFormat[index] == 'date': dateIndex = index
                 elif bankFormat[index] == 'info': infoIndex = index
@@ -96,18 +97,33 @@ def getRawPurchases(csvFiles: list):
                 else:
                     rowValue = row[valueIndex]
 
-                if float(rowValue) < 0:
-                    losses.append(Purchase(rowValue, None, rowDate, rowInfo))
-                else:
-                    gains.append(Purchase(rowValue, None, rowDate, rowInfo))
+                purchases.append((rowValue, rowDate, rowInfo))
 
-    return (losses, gains)
+    return purchases
+
+def getRawLosses(rawPurchases):
+    losses = []
+
+    for purchaseTuple in rawPurchases:
+        if float(purchaseTuple[0]) < 0:
+            losses.append(Purchase(purchaseTuple[0], None, purchaseTuple[1], purchaseTuple[2]))
+
+    return losses
+
+def getRawGains(rawPurchases):
+    gains = []
+
+    for purchaseTuple in rawPurchases:
+        if float(purchaseTuple[0]) >= 0:
+            gains.append(Purchase(purchaseTuple[0], None, purchaseTuple[1], purchaseTuple[2]))
+
+    return gains
 
 def categorizePurchases(purchases: list, clf, vectorizer) -> list:
-    infoStrs = [purchase.info for purchase in purchases]
+    purchaseDescriptions = [purchase.info for purchase in purchases]
 
     try:
-        strsCategories = clf.predict(vectorizer.transform(infoStrs))
+        strsCategories = clf.predict(vectorizer.transform(purchaseDescriptions))
     
     except ValueError as e:
         if "Found array with 0 sample(s)" in e.args[0]:
@@ -119,7 +135,7 @@ def categorizePurchases(purchases: list, clf, vectorizer) -> list:
 
     return purchases
 
-def getLoss(puchasesInput: list) -> float:
+def getMonthLoss(puchasesInput: list) -> float:
     total = 0.0
 
     for purchase in puchasesInput:
@@ -127,7 +143,7 @@ def getLoss(puchasesInput: list) -> float:
     
     return total
 
-def getGain(purchasesInput: list):
+def getMonthGain(purchasesInput: list):
     total = 0.0
     
     for purchase in purchasesInput:
@@ -173,8 +189,8 @@ def pushData(report: Month_Report):
     return True
     
 if __name__ == "__main__":
-    vectorizer = joblib.load('data\\vectorizer.joblib'); print("Loaded vectorizer.")
+    vectorizer = joblib.load('data\\vectorizer.joblib'); print(" * Loaded vectorizer")
 
-    clf = joblib.load('data\\classifier.joblib'); print("Loaded clf.")
+    clf = joblib.load('data\\classifier.joblib'); print(" * Loaded clf")
 
-    main(vectorizer, clf, "12/2025"); print("Ran Report.")
+    main(vectorizer, clf, "12/2025"); print(" * Script Ended")
