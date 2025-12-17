@@ -32,6 +32,7 @@ def main(vectorizer, clf, monthYear: str):
 
     rawPurchases = getRawPurchases(csvFileLocations)
 
+    # Only losses should be counted when created spending habbit charts
     rawGains, rawLosses = getRawGains(rawPurchases), getRawLosses(rawPurchases)
 
     categorizedPurchases = categorizePurchases(rawLosses, clf, vectorizer)
@@ -45,7 +46,7 @@ def main(vectorizer, clf, monthYear: str):
     if pushData(monthReport):
         print(" * Ran Month Report")
 
-def getFileLocations() -> list:
+def getFileLocations() -> list[tuple[str, str]]:
     output = []
 
     pdfLocation = 'ReportData'
@@ -68,14 +69,15 @@ def pullBankName(fileName: str) -> str:
 
     return "Error pulling bank name"
 
-def getRawPurchases(csvFiles: list):
+def getRawPurchases(csvFiles: list[tuple[int, str]]):
     purchases = []
 
     for bank, filePath in csvFiles:
         with open(filePath, 'r', newline='') as file:
             reader = csv.reader(file)
 
-            next(reader) # To-Do: check supported banks if there is a header or not
+            if jsonData[bank]['header']:
+                next(reader) 
 
             dateIndex, infoIndex, valueIndex = None, None, None
 
@@ -83,6 +85,8 @@ def getRawPurchases(csvFiles: list):
 
             reversePayents = jsonData[bank]['reverseValues']
 
+            # Every bank's csv reports will have different number and order of columns
+            # These need to be stated in "supported_banks.json"
             for index in range(len(bankFormat)):
                 if bankFormat[index] == 'date': dateIndex = index
                 elif bankFormat[index] == 'info': infoIndex = index
@@ -92,7 +96,7 @@ def getRawPurchases(csvFiles: list):
                 rowDate = row[dateIndex]
                 rowInfo = row[infoIndex]
 
-                if (reversePayents):
+                if (reversePayents): # Some banks include a "-" for their purchases' values
                     rowValue = f'-{row[valueIndex]}'
                 else:
                     rowValue = row[valueIndex]
@@ -156,6 +160,7 @@ def isFloat(string: str):
     try:
         float(string)
         return '.' in string
+    
     except ValueError:
         return False
 
@@ -187,6 +192,12 @@ def pushData(report: Month_Report):
         json.dump(data, f, indent=4)
 
     return True
+
+def clearDataFiles():
+    filePaths = [path[1] for path in getFileLocations()]
+    
+    for path in filePaths:
+        os.remove(path)
     
 if __name__ == "__main__":
     vectorizer = joblib.load('data\\vectorizer.joblib'); print(" * Loaded vectorizer")
@@ -194,3 +205,9 @@ if __name__ == "__main__":
     clf = joblib.load('data\\classifier.joblib'); print(" * Loaded clf")
 
     main(vectorizer, clf, "12/2025"); print(" * Script Ended")
+
+    if len(sys.argv) >= 2:
+        for tag in sys.argv[1:]:
+            match tag.lower():
+                case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
+                case _: print(f"Tag '{tag}' is not recognized and was not ran")
