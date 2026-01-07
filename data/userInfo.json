@@ -12,16 +12,25 @@
         "Profit/Loss": 1165.9599999999994
     },
     "12/2025": {
-        "Losses": -2428.4099999999994,
-        "Gains": 2440.0,
-        "Profit/Loss": 11.5900000000006,
-        "Categories": null
+        "Losses": -4615.97,
+        "Gains": 4793.92,
+        "Profit/Loss": 177.94999999999985,
+        "Loss_Categories": {
+            "food_drink": -572.2300000000002,
+            "NULL": -2050.0,
+            "loan": -1977.76,
+            "subscription": -15.98
+        },
+        "Gain_Categories": {
+            "food_drink": 2743.92,
+            "NULL": 2050.0
+        }
     },
     "11/2025": {
         "Losses": -2428.4099999999994,
         "Gains": 2440.0,
         "Profit/Loss": 11.5900000000006,
-        "Categories": {
+        "Loss_Categories": {
             "subscription": -51.93000000000001,
             "food_drink": -1473.45,
             "misc": -231.57999999999998,
