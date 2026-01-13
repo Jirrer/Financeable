@@ -1,15 +1,27 @@
 from enum import Enum
 import csv
 
-class Purchase:
-    def __init__(self, purchaseValue, purchaseType, purchaseDate, purchaseInfo):
-        self.value = purchaseValue
-        self.category = purchaseType
-        self.date = purchaseDate
-        self.info = purchaseInfo
+class TransactionType(Enum):
+    Income = 1
+    Purchase = 2
+    MISC = 3
+
+class PurchaseType(Enum):
+    pass
+
+class IncomeType(Enum):
+    pass
+ 
+class Transaction:
+    def __init__(self, transactionValue: float, tranasctionDate, transactionInfo):
+        self.value = transactionValue
+        self.date = tranasctionDate
+        self.info = transactionInfo
+        self.group = None
+        self.category = None
 
     def __repr__(self):
-        return f"value: {self.value} | category: {self.category} | Date: {self.date} | Info: {self.info}"
+        return f"('{self.group}') value: {self.value} | category: {self.category} | Date: {self.date} | Info: {self.info}"
 
 def run(bankType, fileName: str):
     match (bankType) :
@@ -34,7 +46,7 @@ def fifthThird(fileName):
             elif format[index] == 'value': valueIndex = index
 
         for row in reader:
-            output.append(Purchase(row[valueIndex], None, row[dateIndex], row[infoIndex]))
+            output.append(Transaction(row[valueIndex], row[dateIndex], row[infoIndex]))
     
     return output
 
@@ -54,9 +66,9 @@ def americanExpress(fileName):
             elif format[index] == 'Amount': valueIndex = index
 
         for row in reader:
-            if float(row[valueIndex]) > 0.00: output.append(Purchase(f'-{row[valueIndex]}', None, row[dateIndex], row[infoIndex]))
+            if float(row[valueIndex]) > 0.00: output.append(Transaction(f'-{row[valueIndex]}', None, row[dateIndex], row[infoIndex]))
 
-            else: output.append(Purchase(str(abs(float(row[valueIndex]))), None, row[dateIndex], "AMERICAN EXPRESS CREDIT CARD PAYMENT"))
+            else: output.append(Transaction(str(abs(float(row[valueIndex]))), row[dateIndex], "AMERICAN EXPRESS CREDIT CARD PAYMENT"))
 
     
     return output

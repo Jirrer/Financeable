@@ -1,9 +1,11 @@
 import joblib, os, json, csv, sys
 from enum import Enum
-import Supported_Banks
+import PullTransactions
 
 with open('supported_banks.json', 'r', encoding='utf-8') as file:
     jsonData = json.load(file)
+
+    # To-Do: Refactor the word purchase to transaction where needed 
 
 
 class Month_Report:
@@ -55,26 +57,30 @@ class Month_Report:
 
         return output
 
-def main(vectorizer, clf, monthYear: str) -> Month_Report:  
+def main(monthYear: str) -> Month_Report:  
     csvFileLocations = getFileLocations()
 
-    purchasesByBank = [Supported_Banks.run(c[0], c[1]) for c in csvFileLocations]
+    transactionsByBank = [PullTransactions.run(c[0], c[1]) for c in csvFileLocations]
 
-    rawPurchases = [p for bank in purchasesByBank for p in bank]
+    rawTransactions = [t for bank in transactionsByBank for t in bank]
 
-    categorizedPurchases = categorizePurchases(rawPurchases, clf, vectorizer)
+    rawPurchases, rawIncomes = groupTransactions(rawTransactions)
 
-    profit = sum([float(p.value) for p in categorizedPurchases])
+    exit()
 
-    loss = sum([float(p.value) for p in categorizedPurchases if float(p.value) < 0.0])
+    # categorizedPurchases = categorizePurchases(rawPurchases, clf, vectorizer)
 
-    gain = sum([float(p.value) for p in categorizedPurchases if float(p.value) > 0.0])
+    # profit = sum([float(p.value) for p in categorizedPurchases])
 
-    monthReport = Month_Report(monthYear, loss, gain, profit, categorizedPurchases)
+    # loss = sum([float(p.value) for p in categorizedPurchases if float(p.value) < 0.0])
 
-    print(monthReport)
+    # gain = sum([float(p.value) for p in categorizedPurchases if float(p.value) > 0.0])
 
-    return monthReport
+    # monthReport = Month_Report(monthYear, loss, gain, profit, categorizedPurchases)
+
+    # print(monthReport)
+
+    # return monthReport
 
 def getFileLocations() -> list[tuple[str, str]]:
     output = []
@@ -99,21 +105,32 @@ def pullBankName(fileName: str) -> str:
 
     return "Error pulling bank name"
 
-def categorizePurchases(purchases: list, clf, vectorizer) -> list:
-    purchaseDescriptions = [purchase.info for purchase in purchases]
 
-    try:
-        strsCategories = clf.predict(vectorizer.transform(purchaseDescriptions))
+def groupTransactions(transactions: list) -> tuple[list, list]:
+    purchases, incomes = []
+
+
+
+    del transactions
+
+    return purchases, incomes
+
+
+# def categorizePurchases(purchases: list) -> list:
+    # purchaseDescriptions = [purchase.info for purchase in purchases]
+
+    # try:
+    #     strsCategories = clf.predict(vectorizer.transform(purchaseDescriptions))
     
-    except ValueError as e:
-        if "Found array with 0 sample(s)" in e.args[0]:
-            print("Empty Data Folder - Script Ended Early")
-            sys.exit(2)
+    # except ValueError as e:
+    #     if "Found array with 0 sample(s)" in e.args[0]:
+    #         print("Empty Data Folder - Script Ended Early")
+    #         sys.exit(2)
 
-    for index in range(len(purchases)):
-        purchases[index].category = strsCategories[index]
+    # for index in range(len(purchases)):
+    #     purchases[index].category = strsCategories[index]
 
-    return purchases
+    # return purchases
 
 def getMonthLoss(puchasesInput: list) -> float:
     total = 0.0
@@ -182,15 +199,12 @@ if __name__ == "__main__":
 
     month = sys.argv[1]
 
-    vectorizer = joblib.load('data\\vectorizer.joblib'); print(" * Loaded vectorizer")
 
-    clf = joblib.load('data\\classifier.joblib'); print(" * Loaded clf")
+    scriptOutput = main(month); print(" * Script Ended")
 
-    scriptOutput = main(vectorizer, clf, month); print(" * Script Ended")
-
-    if len(sys.argv) >= 3:
-        for tag in sys.argv[2:]:
-            match tag.lower():
-                case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
-                case '-push': pushData(scriptOutput)
-                case _: print(f"Tag '{tag}' is not recognized and was not ran")
+    # if len(sys.argv) >= 3:
+    #     for tag in sys.argv[2:]:
+    #         match tag.lower():
+    #             case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
+    #             case '-push': pushData(scriptOutput)
+    #             case _: print(f"Tag '{tag}' is not recognized and was not ran")
