@@ -169,7 +169,7 @@ def pushData(report: Month_Report):
     with open(filePath, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4)
 
-    return True
+    print(" * Pushed Data")
 
 def clearDataFiles():
     filePaths = [path[1] for path in getFileLocations()]

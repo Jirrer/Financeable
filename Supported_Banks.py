@@ -15,7 +15,7 @@ def run(bankType, fileName: str):
     match (bankType) :
         case "fifth_third": return fifthThird(fileName)
         case "american_express": return americanExpress(fileName)
-        case _: return []
+        case _: print(f"Could not find bank - '{bankType}'"); return []
 
 
 def fifthThird(fileName):

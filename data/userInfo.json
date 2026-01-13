@@ -1,15 +1,54 @@
 {
-    "06/2025": {
-        "Profit/Loss": 1215.5299999999997
-    },
     "09/2025": {
-        "Profit/Loss": -3395.0299999999997
+        "Losses": -3845.17,
+        "Gains": 450.14,
+        "Profit/Loss": -3395.0299999999997,
+        "Loss_Categories": {
+            "gas": -89.02,
+            "food_drink": -133.72,
+            "subscription": -15.98,
+            "shopping": -186.03,
+            "misc": -51.0,
+            "NULL": -3150.0,
+            "loan": -219.42
+        },
+        "Gain_Categories": {
+            "NULL": 450.0,
+            "food_drink": 0.14
+        }
     },
     "08/2025": {
-        "Profit/Loss": 262.43999999999994
+        "Losses": -1318.7799999999997,
+        "Gains": 1581.2199999999998,
+        "Profit/Loss": 262.43999999999994,
+        "Loss_Categories": {
+            "food_drink": -261.40000000000003,
+            "cash": -100.0,
+            "gas": -62.59,
+            "misc": -99.0,
+            "shopping": -26.369999999999997,
+            "NULL": -550.0,
+            "loan": -219.42
+        },
+        "Gain_Categories": {
+            "NULL": 550.0,
+            "food_drink": 1031.22
+        }
     },
     "10/2025": {
-        "Profit/Loss": 1165.9599999999994
+        "Losses": -1081.7400000000002,
+        "Gains": 2247.7,
+        "Profit/Loss": 1165.96,
+        "Loss_Categories": {
+            "shopping": -28.05,
+            "food_drink": -489.7100000000001,
+            "subscription": -13.98,
+            "NULL": -550.0
+        },
+        "Gain_Categories": {
+            "NULL": 550.0,
+            "food_drink": 1697.6999999999998
+        }
     },
     "12/2025": {
         "Losses": -4615.97,
@@ -27,17 +66,36 @@
         }
     },
     "11/2025": {
-        "Losses": -2428.4099999999994,
-        "Gains": 2440.0,
-        "Profit/Loss": 11.5900000000006,
+        "Losses": -1931.9700000000003,
+        "Gains": 3849.64,
+        "Profit/Loss": 1917.67,
         "Loss_Categories": {
-            "subscription": -51.93000000000001,
-            "food_drink": -1473.45,
-            "misc": -231.57999999999998,
-            "cash": -260.0,
-            "gas": -151.61,
-            "shopping": -256.34,
-            "NULL": -3.5
+            "food_drink": -681.6600000000002,
+            "cash": -160.0,
+            "shopping": -15.89,
+            "NULL": -603.5,
+            "misc": -32.08,
+            "loan": -438.84
+        },
+        "Gain_Categories": {
+            "NULL": 600.0,
+            "food_drink": 3249.64
+        }
+    },
+    "07/2025": {
+        "Losses": -941.5799999999999,
+        "Gains": 2355.58,
+        "Profit/Loss": 1414.0,
+        "Loss_Categories": {
+            "subscription": -13.98,
+            "food_drink": -218.67999999999998,
+            "misc": -49.5,
+            "NULL": -440.0,
+            "loan": -219.42
+        },
+        "Gain_Categories": {
+            "NULL": 290.0,
+            "food_drink": 2065.58
         }
     }
 }

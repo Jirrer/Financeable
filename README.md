@@ -1,13 +1,68 @@
+# Finianceable
+Windows desktop application for simplifying finiancal tracking by letter users submit CSV reports from various supported banks processing their data. This data is stored away and can be accessed from the GUI. A key property of this application is the built in categorization of purchases that is done locally on the backend. 
 
 
-## GenerateData.py
-
-
-
-## TrainData.py
-
-## CreateTrainingData.py
-This file's goal is to create a blueprint for creating or adding training data. It pulls
-every purchase (transaction with negative value) from the ReportData directory - by using methods from "GenerateData.py".
-The purchases' info is used for the labels and a placeholder "ADD_LABEL" tag is added for each purchase. This tag can then
-be manually updated to the correct category.
+# Python Requirements
+ * aiofiles\==25.1.0
+ * aiohappyeyeballs\==2.6.1
+ * aiohttp\==3.13.2
+ * aiosignal\==1.4.0
+ * annotated-doc\==0.0.3
+ * annotated-types\==0.7.0
+ * anyio\==4.11.0
+ * attrs\==25.4.0
+ * bidict\==0.23.1
+ * bottle\==0.13.4
+ * certifi\==2025.10.5
+ * cffi\==2.0.0
+ * click\==8.3.0
+ * clr_loader\==0.2.8
+ * colorama\==0.4.6
+ * docutils\==0.22.2
+ * dotenv\==0.9.9
+ * fastapi\==0.121.0
+ * frozenlist\==1.8.0
+ * h11\==0.16.0
+ * httpcore\==1.0.9
+ * httptools\==0.7.1
+ * httpx\==0.28.1
+ * idna\==3.11
+ * ifaddr\==0.2.0
+ * itsdangerous\==2.2.0
+ * Jinja2\==3.1.6
+ * joblib\==1.5.2
+ * markdown2\==2.5.4
+ * MarkupSafe\==3.0.3
+ * multidict\==6.7.0
+ * nicegui\==3.2.0
+ * numpy\==2.3.4
+ * orjson\==3.11.4
+ * pip\==24.0
+ * propcache\==0.4.1
+ * proxy_tools\==0.1.0
+ * pycparser\==2.23
+ * pydantic\==2.12.4
+ * pydantic_core\==2.41.5
+ * Pygments\==2.19.2
+ * pypdf\==6.1.3
+ * python-dotenv\==1.2.1
+ * python-engineio\==4.12.3
+ * python-multipart\==0.0.20
+ * python-socketio\==5.14.3
+ * pythonnet\==3.0.5
+ * pywebview\==6.1
+ * PyYAML\==6.0.3
+ * scikit-learn\==1.7.2
+ * scipy\==1.16.3
+ * setuptools\==65.5.0
+ * simple-websocket\==1.1.0
+ * sniffio\==1.3.1
+ * starlette\==0.49.3
+ * threadpoolctl\==3.6.0
+ * typing_extensions\==4.15.0
+ * typing-inspection\==0.4.2
+ * uvicorn\==0.38.0
+ * watchfiles\==1.1.1
+ * websockets\==15.0.1
+ * wsproto\==1.3.1
+ * yarl\==1.22.0
