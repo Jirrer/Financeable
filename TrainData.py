@@ -1,4 +1,9 @@
 import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 
 transactionFileLocation = 'TrainingData\\TransactionTypeTraining.csv'
 
@@ -6,16 +11,28 @@ df = pd.read_csv(transactionFileLocation)
 
 
 
-print(df)
 
-transactions = df.iloc[:, 0]
+transactions = df.iloc[:, 0].tolist()
 
-labels = df.iloc[:, 1]
+labels = df.iloc[:, 1].tolist()
 
-print(transactions)
+# Split into train/test sets
+X_train, X_test, y_train, y_test = train_test_split(
+    transactions, labels, test_size=0.2, random_state=42
+)
 
-print(labels)
+# Create a TF-IDF + Logistic Regression classifier
+model = Pipeline([
+    ("tfidf", TfidfVectorizer()),
+    ("clf", LogisticRegression(max_iter=200))
+])
 
+# Train
+model.fit(X_train, y_train)
+
+# Evaluate
+preds = model.predict(X_test)
+print(classification_report(y_test, preds))
 
 # DATABASE_LOCATION = 'data\\Financeable.db'
 # VECTORIZER_LOCATION = 'data\\vectorizer.joblib'
