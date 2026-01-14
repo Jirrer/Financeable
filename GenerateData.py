@@ -10,7 +10,7 @@ with open('supported_banks.json', 'r', encoding='utf-8') as file:
 class TransactionType(Enum):
     Income = 'income'
     Purchase = 'purchase'
-    MISC = 'misc'
+    Transfer = 'transfer'
 
 class PurchaseType(Enum):
     pass

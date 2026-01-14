@@ -40,7 +40,7 @@ def fifthThird(fileName):
     return output
 
 def americanExpress(fileName):
-    output, format = [], ("Date","Description","Amount","Extended Details","Appears On Your Statement As","Address","City/State","Zip Code","Country","Reference","Category")
+    output, format = [], ('Date','Description','Amount')
 
     with open(fileName, 'r', newline='') as file:
         reader = csv.reader(file)
@@ -51,13 +51,10 @@ def americanExpress(fileName):
 
         for index in range(len(format)):
             if format[index] == 'Date': dateIndex = index
-            elif format[index] == 'Category': infoIndex = index
+            elif format[index] == 'Description': infoIndex = index
             elif format[index] == 'Amount': valueIndex = index
 
         for row in reader:
-            if float(row[valueIndex]) > 0.00: output.append(Transaction(f'-{row[valueIndex]}', None, row[dateIndex], row[infoIndex]))
-
-            else: output.append(Transaction(str(abs(float(row[valueIndex]))), row[dateIndex], "AMERICAN EXPRESS CREDIT CARD PAYMENT"))
-
+            if float(row[valueIndex]) > 0.00: output.append(Transaction(f'-{row[valueIndex]}', row[dateIndex], row[infoIndex]))
     
     return output
