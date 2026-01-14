@@ -7,6 +7,16 @@ with open('supported_banks.json', 'r', encoding='utf-8') as file:
 
     # To-Do: Refactor the word purchase to transaction where needed 
 
+class TransactionType(Enum):
+    Income = 'income'
+    Purchase = 'purchase'
+    MISC = 'misc'
+
+class PurchaseType(Enum):
+    pass
+
+class IncomeType(Enum):
+    pass
 
 class Month_Report:
     def __init__(self, date: str, loss: float, gain: float, profit: float, purchases: list):
@@ -66,6 +76,12 @@ def main(monthYear: str) -> Month_Report:
 
     rawPurchases, rawIncomes = groupTransactions(rawTransactions)
 
+    for x in rawPurchases:
+        print(x)
+
+    for y in rawIncomes:
+        print(y)
+
     exit()
 
     # categorizedPurchases = categorizePurchases(rawPurchases, clf, vectorizer)
@@ -107,9 +123,20 @@ def pullBankName(fileName: str) -> str:
 
 
 def groupTransactions(transactions: list) -> tuple[list, list]:
-    purchases, incomes = []
+    purchases, incomes = [], []
 
+    model = joblib.load('classifiers\\TransactionClassifier.joblib')
 
+    for t in transactions:
+        prediction = model.predict([t.info])
+
+        if prediction[0] == TransactionType.Income.value: 
+            t.group = prediction[0]
+            incomes.append(t)
+
+        elif prediction[0] == TransactionType.Purchase.value: 
+            t.group = prediction[0]
+            purchases.append(t)
 
     del transactions
 

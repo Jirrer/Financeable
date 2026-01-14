@@ -1,16 +1,5 @@
 from enum import Enum
 import csv
-
-class TransactionType(Enum):
-    Income = 1
-    Purchase = 2
-    MISC = 3
-
-class PurchaseType(Enum):
-    pass
-
-class IncomeType(Enum):
-    pass
  
 class Transaction:
     def __init__(self, transactionValue: float, tranasctionDate, transactionInfo):

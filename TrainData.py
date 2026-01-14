@@ -1,4 +1,5 @@
 import pandas as pd
+import joblib
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -14,12 +15,10 @@ def buildTransactionModel():
 
     labels = df.iloc[:, 1].tolist()
 
-    # Split into train/test sets
     X_train, X_test, y_train, y_test = train_test_split(
         transactions, labels, test_size=0.2, random_state=42, stratify=labels
     )
 
-    # Build model
     model = Pipeline([
         ("tfidf", TfidfVectorizer()),
         ("rf", RandomForestClassifier(
@@ -29,17 +28,17 @@ def buildTransactionModel():
         ))
     ])
 
-    # Train
     model.fit(X_train, y_train)
 
-    # Evaluate
     predictions = model.predict(X_test)
     print(classification_report(y_test, predictions))
 
-    return model
+    joblib.dump(model, "classifiers\\TransactionClassifier.joblib")
+
+buildTransactionModel()
 
 
-clf = buildTransactionModel()
+
 
 # DATABASE_LOCATION = 'data\\Financeable.db'
 # VECTORIZER_LOCATION = 'data\\vectorizer.joblib'
