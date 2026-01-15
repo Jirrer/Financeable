@@ -7,4 +7,3 @@ data.json
 /env
 /Finianceable/bin/Debug/net8.0-windows/env
 data/userInfo.json
-!TrainingData/TransactionTypeTraining.csv

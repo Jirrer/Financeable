@@ -1,5 +1,9 @@
 from enum import Enum
 import csv
+
+class SupportedBanks(Enum):
+    Fifth_Third = 1
+    American_Express = 2
  
 class Transaction:
     def __init__(self, transactionValue: float, tranasctionDate, transactionInfo):
@@ -14,10 +18,9 @@ class Transaction:
 
 def run(bankType, fileName: str):
     match (bankType) :
-        case "fifth_third": return fifthThird(fileName)
-        case "american_express": return americanExpress(fileName)
+        case SupportedBanks.Fifth_Third: return fifthThird(fileName)
+        case SupportedBanks.American_Express: return americanExpress(fileName)
         case _: print(f"Could not find bank - '{bankType}'"); return []
-
 
 def fifthThird(fileName):
     output, format = [], ("date", "info", "check", "value")
@@ -57,4 +60,5 @@ def americanExpress(fileName):
         for row in reader:
             if float(row[valueIndex]) > 0.00: output.append(Transaction(float(f'-{row[valueIndex]}'), row[dateIndex], row[infoIndex]))
             else: output.append(Transaction(float(row[valueIndex]), row[dateIndex], row[infoIndex]))
+            
     return output
