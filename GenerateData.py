@@ -130,8 +130,13 @@ def prepareReport(transactions: list[PullTransactions.Transaction]):
 
     output['Profit/Loss'] = getAcurateMonthTotal(transactions)
 
+
+    # Transaction Groups
     for tranType, tran in getTransactionGroups(transactions): # To-Do: show totals for categories
         output[tranType.value.capitalize()] = {"Total": sum([t.value for t in tran])}
+
+        for category in set([t.category for t in tran]):
+            output[tranType.value.capitalize()][category] = sum([t.value for t in tran if t.category == category]) 
 
     return output
 
