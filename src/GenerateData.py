@@ -1,4 +1,4 @@
-import joblib, os, json, csv, sys
+import joblib, os, json, sys
 from enum import Enum
 import src.PullTransactions as PullTransactions
 from src.MiscMethods import getFileLocations
@@ -21,7 +21,9 @@ class TransferType(Enum):
     Internal = 'internal'
     External = 'external'
 
-def main():  
+def main() -> list[dict, list]:  
+    print(f'Running Generation for {monthYear}')
+
     csvFileLocations = getFileLocations() # To-Do: refactor ('getfilelocations' is too broad)
 
     transactionsByBank = [PullTransactions.run(c[0], c[1]) for c in csvFileLocations] # To-Do: refactor ('getfilelocations' is too broad)
@@ -128,18 +130,17 @@ def printOutput(report, transactions):
     
     for tran in transactions:
         print(tran)
-    
-if __name__ == "__main__": # Refactor
-    if len(sys.argv) <= 1: print("Month was not included"); sys.exit(3)
 
+if __name__ == "__main__" and len(sys.argv) > 1:
     monthYear = sys.argv[1]
 
     report, transactions = main(); print(" * Script Ended")
 
-    if len(sys.argv) >= 3:
-        for tag in sys.argv[2:]:
-            match tag.lower():
-                case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
-                case '-push': pushData(report)
-                case '-print': printOutput(report, transactions)
-                case _: print(f"Tag '{tag}' is not recognized and was not ran")
+    for tag in sys.argv[2:]:
+        match tag.lower():
+            case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
+            case '-push': pushData(report)
+            case '-print': printOutput(report, transactions)
+            case _: print(f"Tag '{tag}' is not recognized and was not ran")
+else:
+    print("Month was not included"); sys.exit(3)
