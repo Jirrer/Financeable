@@ -1,7 +1,7 @@
 import joblib, os, json, csv, sys
 from enum import Enum
-import PullTransactions
-from MiscMethods import getFileLocations
+import src.PullTransactions as PullTransactions
+from src.MiscMethods import getFileLocations
 
 # To-Do: Refactor the word purchase to transaction where needed (and the letter p to t when needed)
 

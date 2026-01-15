@@ -1,6 +1,6 @@
 import joblib
-from MiscMethods import getFileLocations
-import PullTransactions
+from src.MiscMethods import getFileLocations
+import src.PullTransactions as PullTransactions
 
 def testTransactionType():
     csvFileLocations = getFileLocations()

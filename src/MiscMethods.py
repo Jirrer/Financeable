@@ -1,37 +1,20 @@
 import os
 from datetime import datetime
 
-def getFileLocations() -> list[tuple[str, str]]: # refactor
-    output = []
+def getFileLocations() -> list[tuple[str, str]]: #[(Bank Name, FileName)]
+    fileNames = [f for f in os.listdir('ReportData')]
 
-    pdfLocation = 'ReportData'
-
-    pdfNames = [f for f in os.listdir(pdfLocation)]
-
-    for file in pdfNames:
-        if os.path.exists(f'{pdfLocation}\\{file}'):
-            output.append((pullBankName(file), f'{pdfLocation}\\{file}'))
+    output = [(pullBankName(file), f'ReportData\\{file}') for file in fileNames if os.path.exists(f'ReportData\\{file}')]
 
     return output
 
 def pullBankName(fileName: str) -> str:
-    output = []
+    if type(fileName) != str: return 'INVALID_BANK'
 
-    for letter in fileName:
-        if letter == '#': return ''.join(output)
+    for index in range(len(fileName)):
+        if fileName[index] == '#': return ''.join(fileName[:index])
 
-        output.append(letter)
-
-    return "Error pulling bank name"
-
-
-
-
-
-
-
-
-
+    return 'INVALID_BANK'
 
 def isDate(string: str):
     formats = ["%m-%d", "%m-%d-%Y", "%m-%d-%y", "%m/%d", "%m/%d/%Y", "%m/%d/%y"]

@@ -1,6 +1,6 @@
 import csv, joblib
-from MiscMethods import getFileLocations
-import PullTransactions
+from src.MiscMethods import getFileLocations
+import src.PullTransactions as PullTransactions
 
 def findNewTransactionTypes():
     with open('TrainingData\\TransactionData.csv', 'r', newline='') as file:

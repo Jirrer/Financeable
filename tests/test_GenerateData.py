@@ -1,6 +1,6 @@
 import pytest
 
-from GenerateData import *
+from src.GenerateData import *
 
 
 def test_main():
