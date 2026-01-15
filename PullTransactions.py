@@ -2,8 +2,8 @@ from enum import Enum
 import csv
 
 class SupportedBanks(Enum):
-    Fifth_Third = 1
-    American_Express = 2
+    Fifth_Third = 'fifth_third'
+    American_Express = 'american_express'
  
 class Transaction:
     def __init__(self, transactionValue: float, tranasctionDate, transactionInfo):
@@ -18,8 +18,8 @@ class Transaction:
 
 def run(bankType, fileName: str):
     match (bankType) :
-        case SupportedBanks.Fifth_Third: return fifthThird(fileName)
-        case SupportedBanks.American_Express: return americanExpress(fileName)
+        case SupportedBanks.Fifth_Third.value: return fifthThird(fileName)
+        case SupportedBanks.American_Express.value: return americanExpress(fileName)
         case _: print(f"Could not find bank - '{bankType}'"); return []
 
 def fifthThird(fileName):

@@ -3,7 +3,7 @@ from MiscMethods import getFileLocations
 import PullTransactions
 
 def findNewTransactionTypes():
-    with open('TrainingData\\TransactionTypeTraining.csv', 'r', newline='') as file:
+    with open('TrainingData\\TransactionData.csv', 'r', newline='') as file:
         reader = csv.reader(file)
 
         next(reader)
