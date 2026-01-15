@@ -3,8 +3,6 @@ from enum import Enum
 import src.PullTransactions as PullTransactions
 from src.MiscMethods import getFileLocations
 
-# To-Do: Refactor the word purchase to transaction where needed (and the letter p to t when needed)
-
 class TransactionType(Enum):
     Income = 'income'
     Purchase = 'purchase'
@@ -23,36 +21,10 @@ class TransferType(Enum):
     Internal = 'internal'
     External = 'external'
 
-    def getLossCategories(self, purchases: list):
-        output = {}
-
-        for purchase in purchases:
-            if not float(purchase.value) < 0.0: continue
-
-            if purchase.category in output:
-                output[purchase.category] += float(purchase.value)
-            else:
-                output[purchase.category] = float(purchase.value)
-
-        return output
-    
-    def getGainCategories(self, purchases: list):
-        output = {}
-
-        for purchase in purchases:
-            if not float(purchase.value) > 0.0: continue
-
-            if purchase.category in output:
-                output[purchase.category] += float(purchase.value)
-            else:
-                output[purchase.category] = float(purchase.value)
-
-        return output
-
 def main():  
-    csvFileLocations = getFileLocations()
+    csvFileLocations = getFileLocations() # To-Do: refactor ('getfilelocations' is too broad)
 
-    transactionsByBank = [PullTransactions.run(c[0], c[1]) for c in csvFileLocations]
+    transactionsByBank = [PullTransactions.run(c[0], c[1]) for c in csvFileLocations] # To-Do: refactor ('getfilelocations' is too broad)
 
     rawTransactions = [t for bank in transactionsByBank for t in bank]
 
@@ -69,16 +41,7 @@ def groupTransactions(transactions: list) -> list:
     model = joblib.load('classifiers\\TransactionClassifier.joblib')
 
     for t in transactions:
-        prediction = model.predict([t.info])
-
-        if prediction[0] == TransactionType.Income.value: 
-            t.group = prediction[0]
-
-        elif prediction[0] == TransactionType.Purchase.value: 
-            t.group = prediction[0]
-
-        elif prediction[0] == TransactionType.Transfer.value: 
-            t.group = prediction[0]
+        t.group = model.predict([t.info])[0]
 
     del model
 
@@ -98,16 +61,14 @@ def catTransactions(transactions: list) -> list:
             case TransactionType.Transfer.value: t.category = transferModel.predict([t.info])[0]
             case _: continue
 
-
     del incomeModel; del purchaseModel; del transferModel
 
     return transactions
 
-def prepareReport(transactions: list[PullTransactions.Transaction]):
+def prepareReport(transactions: list[PullTransactions.Transaction]) -> dict:
     output = {}
 
     output['Profit/Loss'] = getAcurateMonthTotal(transactions)
-
 
     # Transaction Groups
     for tranType, tran in getTransactionGroups(transactions): # To-Do: show totals for categories
@@ -117,7 +78,6 @@ def prepareReport(transactions: list[PullTransactions.Transaction]):
             output[tranType.value.capitalize()][category] = sum([t.value for t in tran if t.category == category]) 
 
     return output
-
 
 def getTransactionGroups(transactions: list[PullTransactions.Transaction]) -> list:
     incomeTotal = [t for t in transactions if t.group == TransactionType.Income.value]
@@ -144,15 +104,12 @@ def getAcurateMonthTotal(transactions: list[PullTransactions.Transaction]):
 def pushData(report):
     filePath = 'data\\userInfo.json'
 
-    if os.path.exists(filePath):
-        with open(filePath, 'r', encoding='utf-8') as f:
-            try:
-                data = json.load(f)
-            except json.JSONDecodeError:
-                data = []  # if file is empty
+    if not os.path.exists(filePath): data = []
     else:
-        data = []
-
+        with open(filePath, 'r', encoding='utf-8') as f:
+            try: data = json.load(f)
+            except json.JSONDecodeError: data = []
+    
     data[monthYear] = report
 
     with open(filePath, 'w', encoding='utf-8') as f:
@@ -172,7 +129,7 @@ def printOutput(report, transactions):
     for tran in transactions:
         print(tran)
     
-if __name__ == "__main__":
+if __name__ == "__main__": # Refactor
     if len(sys.argv) <= 1: print("Month was not included"); sys.exit(3)
 
     monthYear = sys.argv[1]

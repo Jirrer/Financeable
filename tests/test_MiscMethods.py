@@ -5,7 +5,7 @@ from src.MiscMethods import *
 def test_getFileLocations():
     pass
 
-def test_pullBankName():
+def test_pullBankName(): #To-Do: mock the files found
     assert(pullBankName('fifth_third#89349243') == 'fifth_third')
     assert(pullBankName('american_express#938') == 'american_express')
 
