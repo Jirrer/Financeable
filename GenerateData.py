@@ -22,28 +22,28 @@ class TransferType(Enum):
     Internal = 'internal'
     External = 'external'
 
-class Month_Report:
-    def __init__(self, date: str, loss: float, gain: float, profit: float, purchases: list):
-        self.date = date
-        self.loss = loss
-        self.gain = gain
-        self.profit_loss = profit
-        self.loss_category = self.getLossCategories(purchases)
-        self.gain_category = self.getGainCategories(purchases)
+# class Month_Report:
+#     def __init__(self, date: str, loss: float, gain: float, profit: float, purchases: list):
+#         self.date = date
+#         self.loss = loss
+#         self.gain = gain
+#         self.profit_loss = profit
+#         self.loss_category = self.getLossCategories(purchases)
+#         self.gain_category = self.getGainCategories(purchases)
 
-    def __repr__(self):
-        output = f"""
-        {self.date} Report {{
-        \tDate: {self.date}
-        \tLosses: {self.loss}
-        \tGains: {self.gain}
-        \tProfit: {self.profit_loss}
-        \tLoss Categories: {self.loss_category}       
-        \tGains Categories: {self.gain_category}                    
-        }}
-        """
+#     def __repr__(self):
+#         output = f"""
+#         {self.date} Report {{
+#         \tDate: {self.date}
+#         \tLosses: {self.loss}
+#         \tGains: {self.gain}
+#         \tProfit: {self.profit_loss}
+#         \tLoss Categories: {self.loss_category}       
+#         \tGains Categories: {self.gain_category}                    
+#         }}
+#         """
 
-        return output
+#         return output
 
     def getLossCategories(self, purchases: list):
         output = {}
@@ -71,7 +71,7 @@ class Month_Report:
 
         return output
 
-def main(monthYear: str) -> Month_Report:  
+def main(monthYear: str):  
     csvFileLocations = getFileLocations()
 
     transactionsByBank = [PullTransactions.run(c[0], c[1]) for c in csvFileLocations]
@@ -82,21 +82,19 @@ def main(monthYear: str) -> Month_Report:
 
     categorizedTransactions = catTransactions(groupedTransactions)
 
-    for t in categorizedTransactions:
-        print(f'{t.group} - {t.category}')
+   
 
+    # profit = sum([float(p.value) for p in categorizedTransactions])
 
-    profit = sum([float(p.value) for p in categorizedTransactions])
+    # loss = sum([float(p.value) for p in categorizedTransactions if float(p.value) < 0.0])
 
-    loss = sum([float(p.value) for p in categorizedTransactions if float(p.value) < 0.0])
+    # gain = sum([float(p.value) for p in categorizedTransactions if float(p.value) > 0.0])
 
-    gain = sum([float(p.value) for p in categorizedTransactions if float(p.value) > 0.0])
+    # monthReport = Month_Report(monthYear, loss, gain, profit, categorizedTransactions)
 
-    monthReport = Month_Report(monthYear, loss, gain, profit, categorizedTransactions)
+    # print(monthReport)
 
-    print(monthReport)
-
-    return monthReport
+    # return monthReport
 
 def getFileLocations() -> list[tuple[str, str]]:
     output = []
@@ -185,7 +183,7 @@ def isFloat(string: str):
     except ValueError:
         return False
 
-def pushData(report: Month_Report):
+def pushData(report):
     filePath = 'data\\userInfo.json'
 
     if os.path.exists(filePath):
@@ -230,9 +228,10 @@ if __name__ == "__main__":
 
     scriptOutput = main(month); print(" * Script Ended")
 
-    # if len(sys.argv) >= 3:
-    #     for tag in sys.argv[2:]:
-    #         match tag.lower():
-    #             case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
-    #             case '-push': pushData(scriptOutput)
-    #             case _: print(f"Tag '{tag}' is not recognized and was not ran")
+    if len(sys.argv) >= 3:
+        for tag in sys.argv[2:]:
+            match tag.lower():
+                case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
+                case '-push': pushData(scriptOutput)
+                case '-print': continue
+                case _: print(f"Tag '{tag}' is not recognized and was not ran")

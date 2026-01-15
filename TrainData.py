@@ -13,6 +13,8 @@ class ClassifierType(enum.Enum):
     Transfer = 'Transfer'
 
 def buildModel(classifierType:enum.Enum):
+    print(f"\nBuilding Model - {classifierType.value}")
+
     transactionFileLocation = f'TrainingData\\{classifierType.value}Data.csv'
 
     df = pd.read_csv(transactionFileLocation)
