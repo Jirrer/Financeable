@@ -57,11 +57,11 @@ def main():
 
     groupedTransactions = groupTransactions(rawTransactions)
 
-    categorizedTransactions = catTransactions(groupedTransactions)
+    categorizedTransactions = catTransactions(groupedTransactions)   
 
     report = prepareReport(categorizedTransactions)
 
-    return report
+    return report, categorizedTransactions
 
 def getFileLocations() -> list[tuple[str, str]]:
     output = []
@@ -170,8 +170,6 @@ def pushData(report):
     else:
         data = []
 
-    print(report)
-
     data[monthYear] = report
 
     with open(filePath, 'w', encoding='utf-8') as f:
@@ -184,19 +182,24 @@ def clearDataFiles():
     
     for path in filePaths:
         os.remove(path)
+
+def printOutput(report, transactions):
+    print(report)
+    
+    for tran in transactions:
+        print(tran)
     
 if __name__ == "__main__":
     if len(sys.argv) <= 1: print("Month was not included"); sys.exit(3)
 
     monthYear = sys.argv[1]
 
-
-    scriptOutput = main(); print(" * Script Ended")
+    report, transactions = main(); print(" * Script Ended")
 
     if len(sys.argv) >= 3:
         for tag in sys.argv[2:]:
             match tag.lower():
                 case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
-                case '-push': pushData(scriptOutput)
-                case '-print': continue
+                case '-push': pushData(report)
+                case '-print': printOutput(report, transactions)
                 case _: print(f"Tag '{tag}' is not recognized and was not ran")

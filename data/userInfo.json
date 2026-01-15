@@ -51,18 +51,15 @@
         }
     },
     "12/2025": {
-        "Losses": -4615.97,
-        "Gains": 4793.92,
         "Profit/Loss": 177.94999999999985,
-        "Loss_Categories": {
-            "food_drink": -572.2300000000002,
-            "NULL": -2050.0,
-            "loan": -1977.76,
-            "subscription": -15.98
+        "Income": {
+            "Total": 2085.58
         },
-        "Gain_Categories": {
-            "food_drink": 2743.92,
-            "NULL": 2050.0
+        "Purchase": {
+            "Total": -807.6300000000002
+        },
+        "Transfer": {
+            "Total": -2416.6800000000003
         }
     },
     "11/2025": {

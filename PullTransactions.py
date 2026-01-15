@@ -10,7 +10,7 @@ class Transaction:
         self.category = None
 
     def __repr__(self):
-        return f"('{self.group}') value: {self.value} | category: {self.category} | Date: {self.date} | Info: {self.info}"
+        return f"({self.group}) value: {self.value} | category: {self.category} | Date: {self.date} | Info: {self.info}"
 
 def run(bankType, fileName: str):
     match (bankType) :
