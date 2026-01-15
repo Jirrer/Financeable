@@ -35,7 +35,7 @@ def fifthThird(fileName):
             elif format[index] == 'value': valueIndex = index
 
         for row in reader:
-            output.append(Transaction(row[valueIndex], row[dateIndex], row[infoIndex]))
+            output.append(Transaction(float(row[valueIndex]), row[dateIndex], row[infoIndex]))
     
     return output
 
@@ -55,6 +55,6 @@ def americanExpress(fileName):
             elif format[index] == 'Amount': valueIndex = index
 
         for row in reader:
-            if float(row[valueIndex]) > 0.00: output.append(Transaction(f'-{row[valueIndex]}', row[dateIndex], row[infoIndex]))
-    
+            if float(row[valueIndex]) > 0.00: output.append(Transaction(float(f'-{row[valueIndex]}'), row[dateIndex], row[infoIndex]))
+            else: output.append(Transaction(float(row[valueIndex]), row[dateIndex], row[infoIndex]))
     return output

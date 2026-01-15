@@ -2,7 +2,7 @@ import joblib, os, json, csv, sys
 from enum import Enum
 import PullTransactions
 
-    # To-Do: Refactor the word purchase to transaction where needed (and the letter p to t when needed)
+# To-Do: Refactor the word purchase to transaction where needed (and the letter p to t when needed)
 
 class TransactionType(Enum):
     Income = 'income'
@@ -21,29 +21,6 @@ class IncomeType(Enum):
 class TransferType(Enum):
     Internal = 'internal'
     External = 'external'
-
-# class Month_Report:
-#     def __init__(self, date: str, loss: float, gain: float, profit: float, purchases: list):
-#         self.date = date
-#         self.loss = loss
-#         self.gain = gain
-#         self.profit_loss = profit
-#         self.loss_category = self.getLossCategories(purchases)
-#         self.gain_category = self.getGainCategories(purchases)
-
-#     def __repr__(self):
-#         output = f"""
-#         {self.date} Report {{
-#         \tDate: {self.date}
-#         \tLosses: {self.loss}
-#         \tGains: {self.gain}
-#         \tProfit: {self.profit_loss}
-#         \tLoss Categories: {self.loss_category}       
-#         \tGains Categories: {self.gain_category}                    
-#         }}
-#         """
-
-#         return output
 
     def getLossCategories(self, purchases: list):
         output = {}
@@ -71,7 +48,7 @@ class TransferType(Enum):
 
         return output
 
-def main(monthYear: str):  
+def main():  
     csvFileLocations = getFileLocations()
 
     transactionsByBank = [PullTransactions.run(c[0], c[1]) for c in csvFileLocations]
@@ -82,19 +59,9 @@ def main(monthYear: str):
 
     categorizedTransactions = catTransactions(groupedTransactions)
 
-   
+    report = prepareReport(categorizedTransactions)
 
-    # profit = sum([float(p.value) for p in categorizedTransactions])
-
-    # loss = sum([float(p.value) for p in categorizedTransactions if float(p.value) < 0.0])
-
-    # gain = sum([float(p.value) for p in categorizedTransactions if float(p.value) > 0.0])
-
-    # monthReport = Month_Report(monthYear, loss, gain, profit, categorizedTransactions)
-
-    # print(monthReport)
-
-    # return monthReport
+    return report
 
 def getFileLocations() -> list[tuple[str, str]]:
     output = []
@@ -158,30 +125,38 @@ def catTransactions(transactions: list) -> list:
 
     return transactions
 
-def getMonthLoss(puchasesInput: list) -> float:
-    total = 0.0
+def prepareReport(transactions: list[PullTransactions.Transaction]):
+    output = {}
 
-    for purchase in puchasesInput:
-        if isFloat(purchase.value): total += float(purchase.value)
-    
+    output['Profit/Loss'] = getAcurateMonthTotal(transactions)
+
+    for tranType, tran in getTransactionGroups(transactions): # To-Do: show totals for categories
+        output[tranType.value.capitalize()] = {"Total": sum([t.value for t in tran])}
+
+    return output
+
+
+def getTransactionGroups(transactions: list[PullTransactions.Transaction]) -> list:
+    incomeTotal = [t for t in transactions if t.group == TransactionType.Income.value]
+
+    purchaseTotal = [t for t in transactions if t.group == TransactionType.Purchase.value]
+
+    transferTotal = [t for t in transactions if t.group == TransactionType.Transfer.value]
+
+    return ((TransactionType.Income, incomeTotal), (TransactionType.Purchase, purchaseTotal), (TransactionType.Transfer, transferTotal))
+
+def getAcurateMonthTotal(transactions: list[PullTransactions.Transaction]):
+    total = 0
+
+    for tran in transactions:
+        if not tran.group == 'transfer':
+            total += tran.value
+            continue
+
+        if tran.category == TransferType.External.value:
+            total += tran.value
+
     return total
-
-def getMonthGain(purchasesInput: list):
-    total = 0.0
-    
-    for purchase in purchasesInput:
-        if float(purchase.value) > 0:
-            total += float(purchase.value)
-
-    return total
-
-def isFloat(string: str):
-    try:
-        float(string)
-        return '.' in string
-    
-    except ValueError:
-        return False
 
 def pushData(report):
     filePath = 'data\\userInfo.json'
@@ -195,19 +170,9 @@ def pushData(report):
     else:
         data = []
 
-    newMonth = {}
-    
-    newMonth["Losses"] = report.loss
+    print(report)
 
-    newMonth["Gains"] = report.gain
-
-    newMonth["Profit/Loss"] = report.profit_loss
-
-    newMonth["Loss_Categories"] = report.loss_category
-
-    newMonth["Gain_Categories"] = report.gain_category
-
-    data[report.date] = newMonth
+    data[monthYear] = report
 
     with open(filePath, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4)
@@ -223,10 +188,10 @@ def clearDataFiles():
 if __name__ == "__main__":
     if len(sys.argv) <= 1: print("Month was not included"); sys.exit(3)
 
-    month = sys.argv[1]
+    monthYear = sys.argv[1]
 
 
-    scriptOutput = main(month); print(" * Script Ended")
+    scriptOutput = main(); print(" * Script Ended")
 
     if len(sys.argv) >= 3:
         for tag in sys.argv[2:]:
