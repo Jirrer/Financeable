@@ -1,13 +1,19 @@
 import pandas as pd
-import joblib
+import joblib, enum
 from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 
-def buildModel(trainingDataName:str, joblibName: str):
-    transactionFileLocation = f'TrainingData\\{trainingDataName}.csv'
+class ClassifierType(enum.Enum):
+    Transaction = 'Transaction'
+    Income = 'Income'
+    Purchase = 'Purchase'
+    Transfer = 'Transfer'
+
+def buildModel(classifierType:enum.Enum):
+    transactionFileLocation = f'TrainingData\\{classifierType.value}Data.csv'
 
     df = pd.read_csv(transactionFileLocation)
 
@@ -29,9 +35,10 @@ def buildModel(trainingDataName:str, joblibName: str):
     predictions = model.predict(X_test)
     print(classification_report(y_test, predictions))
 
-    joblib.dump(model, f"classifiers\\{joblibName}.joblib")
+    joblib.dump(model, f"classifiers\\{classifierType.value}Classifier.joblib")
 
 if __name__ == "__main__":
-    buildModel('IncomeTraining', 'IncomeClassifier')
-    buildModel('PurchaseTraining', 'PurchaseClassifier')
-    buildModel('TransferTraining', 'TransferClassifier')
+    buildModel(ClassifierType.Transaction)
+    buildModel(ClassifierType.Income)
+    buildModel(ClassifierType.Purchase)
+    buildModel(ClassifierType.Transfer)

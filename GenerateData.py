@@ -16,7 +16,7 @@ class PurchaseType(Enum):
 
 class IncomeType(Enum):
     Payroll = 'payroll'
-    Interest = 'interest'
+    Passive = 'passive'
 
 class TransferType(Enum):
     Internal = 'internal'
