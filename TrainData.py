@@ -6,8 +6,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 
-def buildTransactionModel():
-    transactionFileLocation = 'TrainingData\\TransactionTypeTraining.csv'
+def buildModel(trainingDataName:str, joblibName: str):
+    transactionFileLocation = f'TrainingData\\{trainingDataName}.csv'
 
     df = pd.read_csv(transactionFileLocation)
 
@@ -29,6 +29,9 @@ def buildTransactionModel():
     predictions = model.predict(X_test)
     print(classification_report(y_test, predictions))
 
-    joblib.dump(model, "classifiers\\TransactionClassifier.joblib")
+    joblib.dump(model, f"classifiers\\{joblibName}.joblib")
 
-
+if __name__ == "__main__":
+    buildModel('IncomeTraining', 'IncomeClassifier')
+    buildModel('PurchaseTraining', 'PurchaseClassifier')
+    buildModel('TransferTraining', 'TransferClassifier')

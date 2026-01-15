@@ -68,7 +68,5 @@ def findNewTransactionTypes():
     print(f'Duplicates: {len(currentDataPointsList) != len(currentDataPoints)}')
 
   
-
-    
 if __name__ == "__main__":
     findNewTransactionTypes()

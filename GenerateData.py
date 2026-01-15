@@ -2,9 +2,6 @@ import joblib, os, json, csv, sys
 from enum import Enum
 import PullTransactions
 
-with open('supported_banks.json', 'r', encoding='utf-8') as file:
-    jsonData = json.load(file)
-
     # To-Do: Refactor the word purchase to transaction where needed 
 
 class TransactionType(Enum):
@@ -13,10 +10,17 @@ class TransactionType(Enum):
     Transfer = 'transfer'
 
 class PurchaseType(Enum):
-    pass
+    Misc = 'misc'
+    Food_Drink = 'food_drink'
+    Gas = 'gas'
 
 class IncomeType(Enum):
-    pass
+    Payroll = 'payroll'
+    Interest = 'interest'
+
+class TransferType(Enum):
+    Internal = 'internal'
+    External = 'external'
 
 class Month_Report:
     def __init__(self, date: str, loss: float, gain: float, profit: float, purchases: list):
@@ -74,17 +78,15 @@ def main(monthYear: str) -> Month_Report:
 
     rawTransactions = [t for bank in transactionsByBank for t in bank]
 
-    rawPurchases, rawIncomes = groupTransactions(rawTransactions)
+    groupedTransactions = groupTransactions(rawTransactions)
 
-    for x in rawPurchases:
-        print(x)
+    categorizedTransactions = catTransactions(groupedTransactions)
+    # categorizedPurchases
 
-    for y in rawIncomes:
-        print(y)
+    for t in categorizedTransactions:
+        print(t.category)
 
     exit()
-
-    # categorizedPurchases = categorizePurchases(rawPurchases, clf, vectorizer)
 
     # profit = sum([float(p.value) for p in categorizedPurchases])
 
@@ -122,9 +124,7 @@ def pullBankName(fileName: str) -> str:
     return "Error pulling bank name"
 
 
-def groupTransactions(transactions: list) -> tuple[list, list]:
-    purchases, incomes = [], []
-
+def groupTransactions(transactions: list) -> list:
     model = joblib.load('classifiers\\TransactionClassifier.joblib')
 
     for t in transactions:
@@ -132,32 +132,35 @@ def groupTransactions(transactions: list) -> tuple[list, list]:
 
         if prediction[0] == TransactionType.Income.value: 
             t.group = prediction[0]
-            incomes.append(t)
 
         elif prediction[0] == TransactionType.Purchase.value: 
             t.group = prediction[0]
-            purchases.append(t)
 
-    del transactions
+        elif prediction[0] == TransactionType.Transfer.value: 
+            t.group = prediction[0]
 
-    return purchases, incomes
+    del model
+
+    return transactions
+
+def catTransactions(transactions: list) -> list:
+    incomeModel = joblib.load('classifiers\\IncomeClassifier.joblib')
+
+    purchaseModel = joblib.load('classifiers\\PurchaseClassifier.joblib')
+
+    transferModel = joblib.load('classifiers\\TransferClassifier.joblib')
+
+    for t in transactions:
+        match (t.group):
+            case TransactionType.Income.value: t.category = incomeModel.predict([t.info])[0]
+            case TransactionType.Purchase.value: t.category = purchaseModel.predict([t.info])[0]
+            case TransactionType.Transfer.value: t.category = transferModel.predict([t.info])[0]
+            case _: continue
 
 
-# def categorizePurchases(purchases: list) -> list:
-    # purchaseDescriptions = [purchase.info for purchase in purchases]
+    del incomeModel; del purchaseModel; del transferModel
 
-    # try:
-    #     strsCategories = clf.predict(vectorizer.transform(purchaseDescriptions))
-    
-    # except ValueError as e:
-    #     if "Found array with 0 sample(s)" in e.args[0]:
-    #         print("Empty Data Folder - Script Ended Early")
-    #         sys.exit(2)
-
-    # for index in range(len(purchases)):
-    #     purchases[index].category = strsCategories[index]
-
-    # return purchases
+    return transactions
 
 def getMonthLoss(puchasesInput: list) -> float:
     total = 0.0
