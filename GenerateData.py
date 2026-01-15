@@ -2,7 +2,7 @@ import joblib, os, json, csv, sys
 from enum import Enum
 import PullTransactions
 
-    # To-Do: Refactor the word purchase to transaction where needed 
+    # To-Do: Refactor the word purchase to transaction where needed (and the letter p to t when needed)
 
 class TransactionType(Enum):
     Income = 'income'
@@ -81,24 +81,22 @@ def main(monthYear: str) -> Month_Report:
     groupedTransactions = groupTransactions(rawTransactions)
 
     categorizedTransactions = catTransactions(groupedTransactions)
-    # categorizedPurchases
 
     for t in categorizedTransactions:
-        print(t.category)
+        print(f'{t.group} - {t.category}')
 
-    exit()
 
-    # profit = sum([float(p.value) for p in categorizedPurchases])
+    profit = sum([float(p.value) for p in categorizedTransactions])
 
-    # loss = sum([float(p.value) for p in categorizedPurchases if float(p.value) < 0.0])
+    loss = sum([float(p.value) for p in categorizedTransactions if float(p.value) < 0.0])
 
-    # gain = sum([float(p.value) for p in categorizedPurchases if float(p.value) > 0.0])
+    gain = sum([float(p.value) for p in categorizedTransactions if float(p.value) > 0.0])
 
-    # monthReport = Month_Report(monthYear, loss, gain, profit, categorizedPurchases)
+    monthReport = Month_Report(monthYear, loss, gain, profit, categorizedTransactions)
 
-    # print(monthReport)
+    print(monthReport)
 
-    # return monthReport
+    return monthReport
 
 def getFileLocations() -> list[tuple[str, str]]:
     output = []
