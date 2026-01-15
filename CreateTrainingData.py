@@ -1,28 +1,59 @@
-from GenerateData import getRawPurchases, getFileLocations
+import csv, joblib
+from MiscMethods import getFileLocations
+import PullTransactions
 
-FILE_LOCATION = 'data\\Training_Data.csv' 
+def findNewTransactionTypes():
+    with open('TrainingData\\TransactionTypeTraining.csv', 'r', newline='') as file:
+        reader = csv.reader(file)
 
-def main():
-    data = createData()
-    pushData(data)
+        next(reader)
 
-def createData() -> list:
-    output = []
+        currentDataPointsList = [(i, l) for i, l in reader]
+        
+        currentDataPoints = set(currentDataPointsList)
 
-    rawPurchases = getRawPurchases(getFileLocations())[0]
+    csvFileLocations = getFileLocations()
 
-    for purchase in rawPurchases:
-        output.append(f"ADD_LABEL,{purchase.info}")
+    transactionsByBank = [PullTransactions.run(c[0], c[1]) for c in csvFileLocations]
 
-    return output
+    transactions = [t for bank in transactionsByBank for t in bank]
 
-# Creates temporary text file that user can add labels to
-def pushData(data: list):
-    with open(FILE_LOCATION, "w", newline="", encoding="utf-8") as file:
-        for line in data:
-            file.write(line + "\n")
+    for t in transactions:
+        print(t.info)
 
-        print("Created Training Data.")
+    model = joblib.load('classifiers\\TransactionClassifier.joblib')
+
+    for t in transactions:
+        t.group = model.predict([t.info])[0]
+
+    incomes = [(t.info, t.group) for t in transactions if (t.info, t.group) not in currentDataPoints and t.group == 'income']
+
+    purchases = [(t.info, t.group) for t in transactions if (t.info, t.group) not in currentDataPoints and t.group == 'purchase']
+
+    transfers = [(t.info, t.group) for t in transactions if (t.info, t.group) not in currentDataPoints and t.group == 'transfer']
+
+    seen = set()
+
+    print("\n")
+    for info, group in incomes: 
+        if (info, group) not in seen:
+            print(f'"{info}",{group}')
+            seen.add((info, group))
+
+    print("\n")
+    for info, group in purchases: 
+        if (info, group) not in seen:
+            print(f'"{info}",{group}')
+            seen.add((info, group))
+
+    print("\n")
+    for info, group in transfers: 
+        if (info, group) not in seen:
+            print(f'"{info}",{group}')
+            seen.add((info, group))
+
+    print(f'\nCurrent unique transactions: {len(currentDataPoints)}')
+    print(f'Duplicates: {len(currentDataPointsList) != len(currentDataPoints)}')
 
 if __name__ == "__main__": 
-    main()
+    findNewTransactionTypes()

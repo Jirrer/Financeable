@@ -1,6 +1,7 @@
 import joblib, os, json, csv, sys
 from enum import Enum
 import PullTransactions
+from MiscMethods import getFileLocations
 
 # To-Do: Refactor the word purchase to transaction where needed (and the letter p to t when needed)
 
@@ -62,29 +63,6 @@ def main():
     report = prepareReport(categorizedTransactions)
 
     return report, categorizedTransactions
-
-def getFileLocations() -> list[tuple[str, str]]:
-    output = []
-
-    pdfLocation = 'ReportData'
-
-    pdfNames = [f for f in os.listdir(pdfLocation)]
-
-    for file in pdfNames:
-        if os.path.exists(f'{pdfLocation}\\{file}'):
-            output.append((pullBankName(file), f'{pdfLocation}\\{file}'))
-
-    return output
-
-def pullBankName(fileName: str) -> str:
-    output = []
-
-    for letter in fileName:
-        if letter == '#': return ''.join(output)
-
-        output.append(letter)
-
-    return "Error pulling bank name"
 
 
 def groupTransactions(transactions: list) -> list:

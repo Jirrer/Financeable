@@ -1,6 +1,36 @@
-import os, json
+import os
 from datetime import datetime
-from pypdf import PdfReader
+
+def getFileLocations() -> list[tuple[str, str]]: # refactor
+    output = []
+
+    pdfLocation = 'ReportData'
+
+    pdfNames = [f for f in os.listdir(pdfLocation)]
+
+    for file in pdfNames:
+        if os.path.exists(f'{pdfLocation}\\{file}'):
+            output.append((pullBankName(file), f'{pdfLocation}\\{file}'))
+
+    return output
+
+def pullBankName(fileName: str) -> str:
+    output = []
+
+    for letter in fileName:
+        if letter == '#': return ''.join(output)
+
+        output.append(letter)
+
+    return "Error pulling bank name"
+
+
+
+
+
+
+
+
 
 
 def isDate(string: str):
