@@ -1,4 +1,4 @@
-import csv, joblib
+import csv, joblib, sys, os
 from src.MiscMethods import getFileLocations
 import src.PullTransactions as PullTransactions
 
@@ -55,5 +55,33 @@ def findNewTransactionTypes():
     print(f'\nCurrent unique transactions: {len(currentDataPoints)}')
     print(f'Duplicates: {len(currentDataPointsList) != len(currentDataPoints)}')
 
+def orderTrainingData():
+    for fileName in os.listdir("TrainingData"):
+        fileContent = open(f"TrainingData\\{fileName}", "r", newline="")
+
+        reader = csv.reader(fileContent)
+
+        next(reader)
+
+        outcome = {}
+        for description, label in reader:
+            if label in outcome: outcome[label].append(description)
+            else: outcome[label] = [description]
+
+        output = []
+        for key in outcome:
+            for value in outcome[key]:
+                output.append(f'"{value}",{key}')
+
+        with open(f"TrainingData\\{fileName}", "w", newline="") as file:
+            file.write("Description, Label\n")
+
+            for index in range(len(output)):
+                if index == len(output) - 1: file.write(output[index])
+                else: file.write(f"{output[index]}\n")
+        
 if __name__ == "__main__": 
     findNewTransactionTypes()
+
+    if len(sys.argv) > 1 and sys.argv[1].lower() == "-order":
+        orderTrainingData()
