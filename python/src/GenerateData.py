@@ -21,9 +21,9 @@ class TransferType(Enum):
     Internal = 'internal'
     External = 'external'
 
-def main() -> list[dict, list]:  
-    print(f'Running Generation for {monthYear}')
+monthYear = None
 
+def main() -> list[dict, list]:  
     csvFileLocations = getFileLocations() # To-Do: refactor ('getfilelocations' is too broad)
 
     transactionsByBank = [PullTransactions.run(c[0], c[1]) for c in csvFileLocations] # To-Do: refactor ('getfilelocations' is too broad)
@@ -116,8 +116,7 @@ def pushData(report):
 
     with open(filePath, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4)
-
-    print(" * Pushed Data")
+    
 
 def clearDataFiles():
     filePaths = [path[1] for path in getFileLocations()]
@@ -131,16 +130,41 @@ def printOutput(report, transactions):
     for tran in transactions:
         print(tran)
 
-if __name__ == "__main__":
+def Run(monthYearInput: str, tags: list) -> bool:
+    global monthYear
+    monthYear = monthYearInput
+
+    report, transactions = main()
+
+    print("Finished Report")
+
+    deleted = False
+    pushed = False
+
+    for t in tags:
+        match t.lower():
+            case '-delete': clearDataFiles(); deleted = True
+            case '-push': pushData(report); pushed = True
+            case '-print': continue
+            case _: continue
+
+    print(f"Deleted: {deleted}") 
+    print(f"Pushed: {pushed}") 
+
+    return True
+    
+
+if __name__ == "__main__": #Refactor to use "run" (maybe)
     if len(sys.argv) > 1:
         monthYear = sys.argv[1]
 
+        print(f'Running Generation for {monthYear}')
         report, transactions = main(); print(" * Script Ended")
 
         for tag in sys.argv[2:]:
             match tag.lower():
                 case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
-                case '-push': pushData(report)
+                case '-push': pushData(report); print(" * Pushed Data")
                 case '-print': printOutput(report, transactions)
                 case _: print(f"Tag '{tag}' is not recognized and was not ran")
     else:

@@ -30,13 +30,14 @@ fn main() -> PyResult<()> {
         // let msg: String = engine_instance.call_method("call", ("python_logic", "greet", "John"), None)?.extract()?;
         // println!("{}", msg);
 
-        let test: String = engine_instance.call_method("call", ("python_logic", "test"), None)?.extract()?;
-        println!("{}", test);
+        let report_outcome: bool = engine_instance.call_method("call", ("python_logic", "runReport", "03/2026", "-push"), None)?.extract()?;
+
+        if report_outcome == false {
+            println!("Report Failed");
+        }
+
 
         
-
-        
-
         Ok(())
     })
 }

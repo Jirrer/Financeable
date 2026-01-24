@@ -5,7 +5,8 @@ from pathlib import Path
 
 from src import GenerateData # type: ignore
 
-def test():
-    return "Hello from Python logic!"
+def runReport(monthYear: str, *tags) -> bool:
+    if GenerateData.Run(monthYear, tags): return True
+    else: return False
 
 
