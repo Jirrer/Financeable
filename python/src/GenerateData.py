@@ -1,7 +1,7 @@
 import joblib, os, json, sys
 from enum import Enum
-import src.PullTransactions as PullTransactions
-from src.MiscMethods import getFileLocations
+import python.src.PullTransactions as PullTransactions
+from python.src.MiscMethods import getFileLocations
 
 class TransactionType(Enum):
     Income = 'income'
