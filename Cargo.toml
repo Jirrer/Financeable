@@ -4,3 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+pyo3 = { version = "0.20" }
+
+[package.metadata.pyo3]
+python = "C:\\Projects\\Finianceable\\env\\Scripts\\python.exe"

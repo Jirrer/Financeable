@@ -1,7 +1,7 @@
 import joblib, os, json, sys
 from enum import Enum
-import python.src.PullTransactions as PullTransactions
-from python.src.MiscMethods import getFileLocations
+from . import PullTransactions
+from .MiscMethods import getFileLocations
 
 class TransactionType(Enum):
     Income = 'income'
@@ -131,16 +131,17 @@ def printOutput(report, transactions):
     for tran in transactions:
         print(tran)
 
-if __name__ == "__main__" and len(sys.argv) > 1:
-    monthYear = sys.argv[1]
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        monthYear = sys.argv[1]
 
-    report, transactions = main(); print(" * Script Ended")
+        report, transactions = main(); print(" * Script Ended")
 
-    for tag in sys.argv[2:]:
-        match tag.lower():
-            case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
-            case '-push': pushData(report)
-            case '-print': printOutput(report, transactions)
-            case _: print(f"Tag '{tag}' is not recognized and was not ran")
-else:
-    print("Month was not included"); sys.exit(3)
+        for tag in sys.argv[2:]:
+            match tag.lower():
+                case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
+                case '-push': pushData(report)
+                case '-print': printOutput(report, transactions)
+                case _: print(f"Tag '{tag}' is not recognized and was not ran")
+    else:
+        print("Month was not included"); sys.exit(3)
