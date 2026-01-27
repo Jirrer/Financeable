@@ -1,7 +1,7 @@
 import joblib, os, json, sys
 from enum import Enum
 from . import PullTransactions
-from .MiscMethods import getFileLocations
+from .MiscMethods import getFileLocations, isDate
 
 class TransactionType(Enum):
     Income = 'income'
@@ -161,6 +161,10 @@ def Run(monthYearInput: str, tags: list) -> bool:
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         monthYear = sys.argv[1]
+
+        if not isDate(monthYear):
+            print("Bad date given - exiting")
+            exit(3)
       
         print(f'Running Generation for {monthYear}')
         report, transactions = main(); print(" * Script Ended")

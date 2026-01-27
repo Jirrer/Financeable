@@ -1,5 +1,17 @@
-import os
+import os, operator
 from datetime import datetime
+
+def sortMonthJson(data: dict) -> list:
+    sortedData = sorted(
+        data.items(),
+        key=lambda item: datetime(
+            year=int(item[0][3:]),
+            month=int(item[0][:2]),
+            day=1
+        ).timestamp()
+    )
+
+    return sortedData
 
 def getFileLocations() -> list[tuple[str, str]]: #[(Bank Name, FileName)]
     fileNames = [f for f in os.listdir('ReportData')]
@@ -17,7 +29,7 @@ def pullBankName(fileName: str) -> str:
     return 'INVALID_BANK'
 
 def isDate(string: str) -> bool:
-    formats = ["%m-%d", "%m-%d-%Y", "%m-%d-%y", "%m/%d", "%m/%d/%Y", "%m/%d/%y"]
+    formats = ["%m/%Y", "%m-%d", "%m-%d-%Y", "%m-%d-%y", "%m/%d", "%m/%d/%Y", "%m/%d/%y"]
     for fmt in formats:
         try:
             datetime.strptime(string, fmt)

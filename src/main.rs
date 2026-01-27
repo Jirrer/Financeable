@@ -1,7 +1,11 @@
 use pyo3::prelude::*;
 use pyo3::types::PyList;
 use std::path::Path;
-use std::io;
+// use std::io;
+
+use serde_json;
+
+use std::collections::HashMap;
 
 fn main() -> PyResult<()> {
     pyo3::prepare_freethreaded_python();
@@ -23,11 +27,20 @@ fn main() -> PyResult<()> {
         // Load the python_logic module via Engine
         engine_instance.call_method("load", ("python_logic", "python/python_logic.py"), None)?;
 
-        let report_outcome: bool = engine_instance.call_method("call", ("python_logic", "sendReport", "03/2026", "-push"), None)?.extract()?;
 
-        if report_outcome == false {
-            println!("Report Failed");
-        }
+
+
+
+        let month_data: String = engine_instance.call_method("call", ("python_logic", "pullMonthData", "01/2025", "12/2025"), None)?.extract()?;
+
+        let data: HashMap<String, serde_json::Value> = serde_json::from_str(&month_data).unwrap();
+        // println!("{:?}", data);
+
+        // let report_outcome: bool = engine_instance.call_method("call", ("python_logic", "sendReport", "03/2026", "-push"), None)?.extract()?;
+
+        // if report_outcome == false {
+        //     println!("Report Failed");
+        // }
 
 
         
