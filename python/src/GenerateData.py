@@ -21,6 +21,12 @@ class TransferType(Enum):
     Internal = 'internal'
     External = 'external'
 
+class Models(Enum):
+    Transaction = joblib.load('classifiers\\TransactionClassifier.joblib')
+    Income = joblib.load('classifiers\\IncomeClassifier.joblib')
+    Purchase = joblib.load('classifiers\\PurchaseClassifier.joblib')
+    Transfer = joblib.load('classifiers\\TransferClassifier.joblib')
+
 monthYear = None
 
 def main() -> list[dict, list]:  
@@ -40,21 +46,19 @@ def main() -> list[dict, list]:
 
 
 def groupTransactions(transactions: list) -> list:
-    model = joblib.load('classifiers\\TransactionClassifier.joblib')
+    transactionModel = Models.Transaction.value
 
     for t in transactions:
-        t.group = model.predict([t.info])[0]
+        t.group = transactionModel.predict([t.info])[0]
 
-    del model
+    del transactionModel
 
     return transactions
 
 def catTransactions(transactions: list) -> list:
-    incomeModel = joblib.load('classifiers\\IncomeClassifier.joblib')
-
-    purchaseModel = joblib.load('classifiers\\PurchaseClassifier.joblib')
-
-    transferModel = joblib.load('classifiers\\TransferClassifier.joblib')
+    incomeModel = Models.Income.value
+    purchaseModel = Models.Purchase.value
+    transferModel = Models.Transfer.value
 
     for t in transactions:
         match (t.group):
@@ -104,7 +108,7 @@ def getAcurateMonthTotal(transactions: list[PullTransactions.Transaction]):
     return total
 
 def pushData(report):
-    filePath = 'data\\userInfo.json'
+    filePath = 'data\\Months.json'
 
     if not os.path.exists(filePath): data = []
     else:
@@ -145,7 +149,7 @@ def Run(monthYearInput: str, tags: list) -> bool:
         match t.lower():
             case '-delete': clearDataFiles(); deleted = True
             case '-push': pushData(report); pushed = True
-            case '-print': continue
+            case '-print': printOutput(report, transactions)
             case _: continue
 
     print(f"Deleted: {deleted}") 
@@ -154,10 +158,10 @@ def Run(monthYearInput: str, tags: list) -> bool:
     return True
     
 
-if __name__ == "__main__": #Refactor to use "run" (maybe)
+if __name__ == "__main__":
     if len(sys.argv) > 1:
         monthYear = sys.argv[1]
-
+      
         print(f'Running Generation for {monthYear}')
         report, transactions = main(); print(" * Script Ended")
 

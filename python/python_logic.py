@@ -1,12 +1,16 @@
-import sys
+from enum import Enum
 from pathlib import Path
-
-# python is already in path from Rust
+import joblib
 
 from src import GenerateData # type: ignore
 
-def runReport(monthYear: str, *tags) -> bool:
+def sendReport(monthYear: str, *tags) -> bool:
     if GenerateData.Run(monthYear, tags): return True
     else: return False
 
+def pullMonthData():
+    pass
 
+
+def pullUserData():
+    pass

@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 use pyo3::types::PyList;
 use std::path::Path;
+use std::io;
 
 fn main() -> PyResult<()> {
     pyo3::prepare_freethreaded_python();
@@ -22,15 +23,7 @@ fn main() -> PyResult<()> {
         // Load the python_logic module via Engine
         engine_instance.call_method("load", ("python_logic", "python/python_logic.py"), None)?;
 
-        // // Call compute(10)
-        // let result: i32 = engine_instance.call_method("call", ("python_logic", "compute", 10), None)?.extract()?;
-        // println!("compute(10) = {}", result);
-
-        // // Call greet("John")
-        // let msg: String = engine_instance.call_method("call", ("python_logic", "greet", "John"), None)?.extract()?;
-        // println!("{}", msg);
-
-        let report_outcome: bool = engine_instance.call_method("call", ("python_logic", "runReport", "03/2026", "-push"), None)?.extract()?;
+        let report_outcome: bool = engine_instance.call_method("call", ("python_logic", "sendReport", "03/2026", "-push"), None)?.extract()?;
 
         if report_outcome == false {
             println!("Report Failed");

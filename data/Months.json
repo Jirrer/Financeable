@@ -138,13 +138,13 @@
         },
         "Purchase": {
             "Total": -495.23,
-            "misc": -386.06,
-            "food_drink": -109.16999999999999
+            "food_drink": -109.16999999999999,
+            "misc": -386.06
         },
         "Transfer": {
             "Total": -1252.98,
-            "internal": -316.98,
-            "external": -936.0
+            "external": -936.0,
+            "internal": -316.98
         }
     }
 }
