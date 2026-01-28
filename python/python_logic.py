@@ -2,7 +2,8 @@ from enum import Enum
 from pathlib import Path
 import json
 
-from src import GenerateData, MiscMethods # type: ignore
+from src import GenerateData # type: ignore
+from src import MiscMethods # tpee:ignore
 
 def sendReport(monthYear: str, *tags) -> bool:
     if not MiscMethods.isDate(monthYear): return False
@@ -10,28 +11,39 @@ def sendReport(monthYear: str, *tags) -> bool:
     if GenerateData.Run(monthYear, tags): return True
     else: return False
 
-def pullMonthData(startDate: str, endDate: str):
-    if not MiscMethods.isDate(startDate) or not MiscMethods.isDate(endDate):
-        return json.dumps({"Error": "Bad Date(s) Given"})
+def pullMonthYearData(**pullType) -> str | bool:    
+    if "year" in pullType:
+        with open('data\\Months.json', 'r', newline='') as file:
+            data = json.load(file)
 
-    with open('data\\Months.json', 'r', newline='') as file:
-        data = json.load(file)
-        
+        return json.dumps({key: val for key, val in data.items() if int(key[3:]) == pullType["year"]})
+
+    elif "range" in pullType:
+        startDate, endDate = pullType["range"]
+
+        with open('data\\Months.json', 'r', newline='') as file:
+            data = json.load(file)
+
+        if startDate not in data:
+            data[startDate] = {}
+
         sortedData = MiscMethods.sortMonthJson(data)
 
-        startSplice, endSplice = 0, 1
-        for x in sortedData:
-            print((x[0]), (endDate))
-            if x[0] == startDate: print("found start")
+        filledInData = MiscMethods.fillMonthYearGaps(sortedData)
 
-            elif x[0] == endSplice: break
+        dataList = list(filledInData.items())
 
+        startSplice, endSplice = 0, 0
+
+        for index in range(len(dataList)):
             endSplice += 1
 
-        for x in sortedData[startSplice: endSplice]:
-            print(x[0])
+            if dataList[index][0] == startDate: startSplice = index
+            if dataList[index][0] == endDate: break 
 
-        return json.dumps(dict(sortedData[startSplice: endSplice]))
+        return json.dumps(dict(dataList[startSplice:endSplice]))
+    
+    return False
 
 def pullUserData():
     pass

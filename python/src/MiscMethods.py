@@ -1,7 +1,36 @@
 import os, operator
 from datetime import datetime
 
-def sortMonthJson(data: dict) -> list:
+def fillMonthYearGaps(data: dict) -> dict:
+    monthYearsList = list((sortMonthJson(data).keys()))
+
+    monthYear = monthYearsList[0]  
+
+    while monthYear != monthYearsList[-1]:
+        month, year = int(monthYear[:2]), int(monthYear[3:])
+
+        if month == 12:
+            nextMonth = "01"
+            nextYear =  str(year + 1)
+
+        elif month > 8:
+            nextMonth = str(month + 1)
+            nextYear = str(year)
+
+        else:
+            nextMonth = f"0{str(month + 1)}"
+            nextYear = str(year)
+
+        nextMonthYear = f"{nextMonth}/{nextYear}"
+
+        if (nextMonthYear) not in data:
+            data[nextMonthYear] = {}
+
+        monthYear = nextMonthYear
+
+    return sortMonthJson(data)
+
+def sortMonthJson(data: dict) -> dict:
     sortedData = sorted(
         data.items(),
         key=lambda item: datetime(
@@ -11,7 +40,7 @@ def sortMonthJson(data: dict) -> list:
         ).timestamp()
     )
 
-    return sortedData
+    return dict(sortedData)
 
 def getFileLocations() -> list[tuple[str, str]]: #[(Bank Name, FileName)]
     fileNames = [f for f in os.listdir('ReportData')]

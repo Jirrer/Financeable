@@ -21,6 +21,9 @@ class TransferType(Enum):
     Internal = 'internal'
     External = 'external'
 
+# Keep classifiers as a Class so it can be vectorized as soon as the
+# script runs (manually run) or when the module is loaded (when being
+# used by the rust frontend)
 class Models(Enum):
     Transaction = joblib.load('classifiers\\TransactionClassifier.joblib')
     Income = joblib.load('classifiers\\IncomeClassifier.joblib')
