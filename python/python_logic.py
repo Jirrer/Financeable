@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 
 from src import GenerateData # type: ignore
-from src import MiscMethods # tpee:ignore
+from src import MiscMethods # type:ignore
 
 def sendReport(monthYear: str, *tags) -> bool:
     if not MiscMethods.isDate(monthYear): return False
@@ -16,7 +16,13 @@ def pullMonthYearData(**pullType) -> str | bool:
         with open('data\\Months.json', 'r', newline='') as file:
             data = json.load(file)
 
-        return json.dumps({key: val for key, val in data.items() if int(key[3:]) == pullType["year"]})
+        sortedData = MiscMethods.sortMonthJson(data)
+
+        fillGaps = MiscMethods.fillMonthYearGaps(sortedData)
+
+        filtedOutYear = {key: val for key, val in fillGaps.items() if int(key[3:]) == pullType["year"]}
+
+        return json.dumps(filtedOutYear)
 
     elif "range" in pullType:
         startDate, endDate = pullType["range"]

@@ -2,11 +2,13 @@ import os, operator
 from datetime import datetime
 
 def fillMonthYearGaps(data: dict) -> dict:
-    monthYearsList = list((sortMonthJson(data).keys()))
+    try:
+        monthYear = list((sortMonthJson(data).keys()))[0]  
+    
+    except IndexError as e:
+        return {}
 
-    monthYear = monthYearsList[0]  
-
-    while monthYear != monthYearsList[-1]:
+    while monthYear != getThisMonthYear():
         month, year = int(monthYear[:2]), int(monthYear[3:])
 
         if month == 12:
@@ -74,12 +76,13 @@ def isFloat(string: str):
     except ValueError:
         return False
 
-def getThisMonth() -> str:
+def getThisMonthYear() -> str:
     now = datetime.now()
     month = now.month  
     year = now.year 
 
-    return (f'{month}/{year}')
+    if month < 10: return (f'0{month}/{year}')
+    else: return (f'{month}/{year}')
 
 def labelToDate(label: str) -> str:
     year = label[0:4]

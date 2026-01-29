@@ -1,11 +1,11 @@
 use pyo3::prelude::*;
 use pyo3::types::PyList;
+use pyo3::types::PyDict;
 use std::path::Path;
+
 // use std::io;
-
-use serde_json;
-
-use std::collections::HashMap;
+// use serde_json;
+// use std::collections::HashMap;
 
 fn main() -> PyResult<()> {
     pyo3::prepare_freethreaded_python();
@@ -29,19 +29,12 @@ fn main() -> PyResult<()> {
 
 
 
+        let kwargs = PyDict::new(py);
+            kwargs.set_item("year", 2025)?;
 
+        let output: String = engine_instance.call_method("call", ("python_logic", "pullMonthYearData"), Some(kwargs))?.extract()?;
 
-        let month_data: String = engine_instance.call_method("call", ("python_logic", "pullMonthData", "01/2025", "12/2025"), None)?.extract()?;
-
-        let data: HashMap<String, serde_json::Value> = serde_json::from_str(&month_data).unwrap();
-        // println!("{:?}", data);
-
-        // let report_outcome: bool = engine_instance.call_method("call", ("python_logic", "sendReport", "03/2026", "-push"), None)?.extract()?;
-
-        // if report_outcome == false {
-        //     println!("Report Failed");
-        // }
-
+        println!("{}", output);
 
         
         Ok(())
