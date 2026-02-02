@@ -7,8 +7,7 @@
     <title>Report Page</title>
     <script src="main.js" defer></script>
   </head>
-
-  <body>
+  <body onload="initReportPage()">
     <main>
     <div class="topBar">
       <button id="reportsButton" onclick="goReportPage()">Reports</button>
@@ -16,13 +15,13 @@
     </div>
     <div class="reportsContent">
       <div class="monthsReport">
-        line chart
+        <div id="lineChartData"></div>
       </div>
       <div class="purchaseCategories">
-        pie charts
+        <div id="purchaseCategoriesData"></div>
       </div>
       <div class="userInsights">
-        reconmendations and insights
+        <div id="insightsData"></div>
       </div>
     </div>
     </main>
