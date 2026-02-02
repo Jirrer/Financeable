@@ -20,12 +20,24 @@ body {
   border: none;
 }
 
+.topBar button:hover{
+  cursor: pointer;
+}
+
 #reportsButton {
   background-color: #46A692;
 }
 
+#reportsButton:hover{
+  background-color: #088F8F;
+}
+
 #logsButton {
   background-color: #6495ED;
+}
+
+#logsButton:hover {
+  background-color: #6082B6;
 }
 
 .reportsContent {
