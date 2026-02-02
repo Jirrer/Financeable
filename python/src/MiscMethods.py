@@ -1,4 +1,4 @@
-import os, operator
+import os
 from datetime import datetime
 
 def fillMonthYearGaps(data: dict) -> dict:
