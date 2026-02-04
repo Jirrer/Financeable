@@ -1,5 +1,7 @@
 import pandas as pd
 import joblib, enum
+import sys
+from pathlib import Path
 from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -12,10 +14,22 @@ class ClassifierType(enum.Enum):
     Purchase = 'Purchase'
     Transfer = 'Transfer'
 
+BASE_DIR = Path(__file__).resolve().parents[2]
+PYTHON_DIR = BASE_DIR / "python"
+if str(PYTHON_DIR) not in sys.path:
+    sys.path.insert(0, str(PYTHON_DIR))
+
+VENV_SITE_PACKAGES = BASE_DIR / "env" / "Lib" / "site-packages"
+if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
+    sys.path.insert(0, str(VENV_SITE_PACKAGES))
+
+TRAINING_DIR = BASE_DIR / "TrainingData"
+CLASSIFIERS_DIR = BASE_DIR / "classifiers"
+
 def buildModel(classifierType:enum.Enum):
     print(f"\nBuilding Model - {classifierType.value}")
 
-    transactionFileLocation = f'TrainingData\\{classifierType.value}Data.csv'
+    transactionFileLocation = str(TRAINING_DIR / f"{classifierType.value}Data.csv")
 
     df = pd.read_csv(transactionFileLocation)
 
@@ -37,7 +51,7 @@ def buildModel(classifierType:enum.Enum):
     predictions = model.predict(X_test)
     print(classification_report(y_test, predictions))
 
-    joblib.dump(model, f"classifiers\\{classifierType.value}Classifier.joblib")
+    joblib.dump(model, str(CLASSIFIERS_DIR / f"{classifierType.value}Classifier.joblib"))
 
 if __name__ == "__main__":
     buildModel(ClassifierType.Transaction)

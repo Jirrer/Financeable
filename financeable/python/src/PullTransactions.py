@@ -1,5 +1,16 @@
 from enum import Enum
 import csv
+import sys
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+PYTHON_DIR = BASE_DIR / "python"
+if str(PYTHON_DIR) not in sys.path:
+    sys.path.insert(0, str(PYTHON_DIR))
+
+VENV_SITE_PACKAGES = BASE_DIR / "env" / "Lib" / "site-packages"
+if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
+    sys.path.insert(0, str(VENV_SITE_PACKAGES))
 
 class SupportedBanks(Enum):
     Fifth_Third = 'fifth_third'

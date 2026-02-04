@@ -1,9 +1,23 @@
 import csv, joblib, sys, os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+PYTHON_DIR = BASE_DIR / "python"
+if str(PYTHON_DIR) not in sys.path:
+    sys.path.insert(0, str(PYTHON_DIR))
+
+VENV_SITE_PACKAGES = BASE_DIR / "env" / "Lib" / "site-packages"
+if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
+    sys.path.insert(0, str(VENV_SITE_PACKAGES))
+
 from python.src.MiscMethods import getFileLocations
 import python.src.PullTransactions as PullTransactions
 
 def findNewTransactionTypes():
-    with open('TrainingData\\TransactionData.csv', 'r', newline='') as file:
+    training_dir = BASE_DIR / "TrainingData"
+    classifiers_dir = BASE_DIR / "classifiers"
+
+    with open(str(training_dir / "TransactionData.csv"), 'r', newline='') as file:
         reader = csv.reader(file)
 
         next(reader)
@@ -21,7 +35,7 @@ def findNewTransactionTypes():
     for t in transactions:
         print(t.info)
 
-    model = joblib.load('classifiers\\TransactionClassifier.joblib')
+    model = joblib.load(str(classifiers_dir / "TransactionClassifier.joblib"))
 
     for t in transactions:
         t.group = model.predict([t.info])[0]
@@ -56,8 +70,11 @@ def findNewTransactionTypes():
     print(f'Duplicates: {len(currentDataPointsList) != len(currentDataPoints)}')
 
 def orderTrainingData():
-    for fileName in os.listdir("TrainingData"):
-        fileContent = open(f"TrainingData\\{fileName}", "r", newline="")
+    base_dir = Path(__file__).resolve().parents[2]
+    training_dir = base_dir / "TrainingData"
+
+    for fileName in os.listdir(str(training_dir)):
+        fileContent = open(str(training_dir / fileName), "r", newline="")
 
         reader = csv.reader(fileContent)
 
@@ -73,7 +90,7 @@ def orderTrainingData():
             for value in outcome[key]:
                 output.append(f'"{value}",{key}')
 
-        with open(f"TrainingData\\{fileName}", "w", newline="") as file:
+        with open(str(training_dir / fileName), "w", newline="") as file:
             file.write("Description, Label\n")
 
             for index in range(len(output)):
