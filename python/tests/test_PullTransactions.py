@@ -1,6 +1,6 @@
 import pytest
 
-from src.PullTransactions import *
+from python.src.PullTransactions import *
 
 
 def test_run():

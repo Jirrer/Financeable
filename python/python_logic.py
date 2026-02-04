@@ -31,9 +31,7 @@ def pullMonthYearData(**pullType) -> str | bool:
 
         fillGaps = MiscMethods.fillMonthYearGaps(sortedData)
 
-        filtedOutYear = {key: val for key, val in fillGaps.items() if int(key[3:]) == pullType["year"]}
-
-        return json.dumps(filtedOutYear)
+        output = {key: val for key, val in fillGaps.items() if int(key[3:]) == pullType["year"]}
 
     elif "range" in pullType:
         startDate, endDate = pullType["range"]
@@ -58,9 +56,26 @@ def pullMonthYearData(**pullType) -> str | bool:
             if dataList[index][0] == startDate: startSplice = index
             if dataList[index][0] == endDate: break 
 
-        return json.dumps(dict(dataList[startSplice:endSplice]))
+        output = dict(dataList[startSplice:endSplice])
     
-    return False
+    if not output:
+        return False
+    
+    return organizeOutput(output)
+
+def organizeOutput(output: dict) -> dict:
+    newOutput = {'profits': [], 'categories': []}
+
+    for key, val in output.items():
+        newOutput["profits"].append((key, val['Profit/Loss']))
+        categories = val.get('categories', {}) if isinstance(val, dict) else {}
+        newOutput["categories"].append((key, categories))
+
+    return newOutput
+
 
 def pullUserData():
     pass
+
+if __name__ == "__main__":
+    print((pullMonthYearData(year = 2026)))

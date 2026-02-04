@@ -1,6 +1,6 @@
 import pytest
 
-from src.TrainData import *
+from python.src.TrainData import *
 
 
 def test_buildModel():

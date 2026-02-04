@@ -1,6 +1,6 @@
 import pytest
 
-from src.TestModels import *
+from python.src.TestModels import *
 
 
 def test_testTransactionType():

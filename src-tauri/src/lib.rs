@@ -13,8 +13,8 @@ static PY_ENGINE: OnceCell<Py<PyAny>> = OnceCell::new();
 
 fn python_paths() -> (String, String) {
     // Use absolute paths to the python directory
-    let python_root = "C:\\Projects\\Finianceable\\financeable\\python".to_string();
-    let middleware = "C:\\Projects\\Finianceable\\financeable\\python\\middleware".to_string();
+    let python_root = "C:\\Projects\\financeable\\python".to_string();
+    let middleware = "C:\\Projects\\financeable\\python\\middleware".to_string();
     
     (middleware, python_root)
 }
@@ -22,14 +22,14 @@ fn python_paths() -> (String, String) {
 fn init_python_engine() -> PyResult<Py<PyAny>> {
     // Force PyO3 to use the venv Python (allow override via env)
     let py_path = env::var("PYTHON_SYS_EXECUTABLE")
-        .unwrap_or_else(|_| "C:\\Projects\\Finianceable\\financeable\\env\\Scripts\\python.exe".to_string());
+        .unwrap_or_else(|_| "C:\\Projects\\financeable\\env\\Scripts\\python.exe".to_string());
     env::set_var("PYTHON_SYS_EXECUTABLE", &py_path);
 
     let venv_root = Path::new(&py_path)
         .parent()
         .and_then(|p| p.parent())
         .map(|p| p.to_string_lossy().to_string())
-        .unwrap_or_else(|| "C:\\Projects\\Finianceable\\financeable\\env".to_string());
+        .unwrap_or_else(|| "C:\\Projects\\financeable\\env".to_string());
     let venv_site_packages = format!("{}\\Lib\\site-packages", venv_root);
 
     env::set_var("VIRTUAL_ENV", &venv_root);
@@ -84,8 +84,8 @@ fn get_engine() -> PyResult<&'static Py<PyAny>> {
 
 #[derive(Serialize, Deserialize)]
 struct ReportData {
-    months: String,
-    categories: String,
+    profits: Vec<(String, f64)>,
+    categories: Vec<(String, serde_json::Value)>,
     insights: String,
 }
 
@@ -102,14 +102,51 @@ fn get_report_data(year: i32) -> Result<ReportData, String> {
         let kwargs = PyDict::new(py);
         kwargs.set_item("year", year)?;
 
-        let result: String = logic
+        let result = logic
             .getattr("pullMonthYearData")?
-            .call((), Some(&kwargs))?
+            .call((), Some(&kwargs))?;
+
+        let json = py.import("json")?;
+        let profits_json: String = json
+            .getattr("dumps")?
+            .call1((result,))?
             .extract()?;
 
+        let parsed: serde_json::Value = serde_json::from_str(&profits_json)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+
+        let profits: Vec<(String, f64)> = parsed
+            .get("profits")
+            .and_then(|v| v.as_array())
+            .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyValueError, _>("Missing profits"))?
+            .iter()
+            .filter_map(|item| {
+                let arr = item.as_array()?;
+                let label = arr.get(0)?.as_str()?.to_string();
+                let value = arr.get(1)?.as_f64()?;
+                Some((label, value))
+            })
+            .collect();
+
+        let categories: Vec<(String, serde_json::Value)> = parsed
+            .get("categories")
+            .and_then(|v| v.as_array())
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|item| {
+                        let arr = item.as_array()?;
+                        let label = arr.get(0)?.as_str()?.to_string();
+                        let value = arr.get(1)?.clone();
+                        Some((label, value))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
         Ok(ReportData {
-            months: result,
-            categories: "".to_string(),
+            profits,
+            categories,
             insights: "".to_string(),
         })
     })
@@ -130,7 +167,6 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            greet,
             get_report_data,
             get_log_data
         ])
