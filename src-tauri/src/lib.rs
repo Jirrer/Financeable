@@ -1,0 +1,139 @@
+use std::env;
+use std::path::Path;
+use once_cell::sync::OnceCell;
+use pyo3::prelude::*;
+use pyo3::types::PyDict;
+use serde::{Deserialize, Serialize};
+
+// =========================
+// Shared Python Engine
+// =========================
+
+static PY_ENGINE: OnceCell<Py<PyAny>> = OnceCell::new();
+
+fn python_paths() -> (String, String) {
+    // Use absolute paths to the python directory
+    let python_root = "C:\\Projects\\Finianceable\\financeable\\python".to_string();
+    let middleware = "C:\\Projects\\Finianceable\\financeable\\python\\middleware".to_string();
+    
+    (middleware, python_root)
+}
+
+fn init_python_engine() -> PyResult<Py<PyAny>> {
+    // Force PyO3 to use the venv Python (allow override via env)
+    let py_path = env::var("PYTHON_SYS_EXECUTABLE")
+        .unwrap_or_else(|_| "C:\\Projects\\Finianceable\\financeable\\env\\Scripts\\python.exe".to_string());
+    env::set_var("PYTHON_SYS_EXECUTABLE", &py_path);
+
+    let venv_root = Path::new(&py_path)
+        .parent()
+        .and_then(|p| p.parent())
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|| "C:\\Projects\\Finianceable\\financeable\\env".to_string());
+    let venv_site_packages = format!("{}\\Lib\\site-packages", venv_root);
+
+    env::set_var("VIRTUAL_ENV", &venv_root);
+    env::set_var("PYTHONHOME", &venv_root);
+    let existing_pythonpath = env::var("PYTHONPATH").unwrap_or_default();
+    let pythonpath = if existing_pythonpath.is_empty() {
+        venv_site_packages.clone()
+    } else {
+        format!("{};{}", venv_site_packages, existing_pythonpath)
+    };
+    env::set_var("PYTHONPATH", pythonpath);
+
+    pyo3::Python::with_gil(|py| {
+        let sys = py.import("sys")?;
+        eprintln!("PYTHON EXECUTABLE: {}", sys.getattr("executable")?);
+        eprintln!("PYTHON PREFIX: {}", sys.getattr("prefix")?);
+        eprintln!("PYTHON BASE_PREFIX: {}", sys.getattr("base_prefix")?);
+        eprintln!("PYTHON VENV: {}", venv_root);
+        eprintln!("PYTHON SITE-PACKAGES: {}", venv_site_packages);
+        let path_obj = sys.getattr("path")?;
+
+        // Add your python folder and src
+        let (middleware, python_root) = python_paths();
+        let python_src = format!("{}\\src", python_root);
+        path_obj.call_method1("insert", (0, venv_site_packages))?;
+        path_obj.call_method1("insert", (0, python_src))?;
+        path_obj.call_method1("insert", (0, python_root))?;
+        path_obj.call_method1("insert", (0, middleware))?;
+
+        // Try import
+        match py.import("python_logic") {
+            Ok(logic_mod) => {
+                eprintln!("Successfully imported python_logic");
+                Ok(logic_mod.into())
+            },
+            Err(e) => {
+                eprintln!("Failed to import python_logic: {}", e);
+                e.print(py);
+                Err(e)
+            }
+        }
+    })
+}
+
+fn get_engine() -> PyResult<&'static Py<PyAny>> {
+    PY_ENGINE.get_or_try_init(init_python_engine)
+}
+
+// =========================
+// Data Models
+// =========================
+
+#[derive(Serialize, Deserialize)]
+struct ReportData {
+    months: String,
+    categories: String,
+    insights: String,
+}
+
+// =========================
+// Tauri Commands
+// =========================
+
+#[tauri::command]
+fn get_report_data(year: i32) -> Result<ReportData, String> {
+    pyo3::Python::with_gil(|py| {
+        let engine = get_engine()?;
+        let logic = engine.as_ref(py);
+
+        let kwargs = PyDict::new(py);
+        kwargs.set_item("year", year)?;
+
+        let result: String = logic
+            .getattr("pullMonthYearData")?
+            .call((), Some(&kwargs))?
+            .extract()?;
+
+        Ok(ReportData {
+            months: result,
+            categories: "".to_string(),
+            insights: "".to_string(),
+        })
+    })
+    .map_err(|e: PyErr| e.to_string())
+}
+
+#[tauri::command]
+fn get_log_data() -> String {
+    "Log data from Rust".to_string()
+}
+
+// =========================
+// App Entry Point
+// =========================
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            get_report_data,
+            get_log_data
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
