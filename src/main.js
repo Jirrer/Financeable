@@ -31,7 +31,7 @@ function initReportPage() {
   console.log(parsedData);
 
   if (parsedData) {
-    setLineChart(parsedData.months);
+    setLineChart(parsedData.profits);
     setPurchaseCategories(parsedData.categories)
     setUserInsights(parsedData.insights)
   }

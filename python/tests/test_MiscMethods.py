@@ -1,6 +1,6 @@
 import pytest
 
-from src.MiscMethods import *
+from python.src.MiscMethods import *
 
 def test_getFileLocations():
     pass
