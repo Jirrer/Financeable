@@ -2,8 +2,8 @@ const { invoke } = window.__TAURI__.core;
 
 async function initApp() {
   try {
-    const data = await invoke('get_report_data');
-    sessionStorage.setItem('reportData', JSON.stringify(data)); // Convert to JSON string
+    const data = await invoke('get_report_data', { year: 2026 });
+    sessionStorage.setItem('reportData', JSON.stringify(data));
     initReportPage();
   } catch (error) {
     console.error('Error initializing app:', error);
@@ -14,9 +14,9 @@ window.addEventListener('load', initApp);
 
 async function goReportPage() {
   try {
-    const data = await invoke('get_report_data');
+    const data = await invoke('get_report_data', { year: 2026 });
     
-    sessionStorage.setItem('reportData', data);
+    sessionStorage.setItem('reportData', JSON.stringify(data));
     window.location.href = "reportPage.html";
     
   } catch (error) {

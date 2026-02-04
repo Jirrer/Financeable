@@ -1,7 +1,20 @@
 import json
+import sys
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+PYTHON_DIR = BASE_DIR / "python"
+if str(PYTHON_DIR) not in sys.path:
+    sys.path.insert(0, str(PYTHON_DIR))
+
+VENV_SITE_PACKAGES = BASE_DIR / "env" / "Lib" / "site-packages"
+if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
+    sys.path.insert(0, str(VENV_SITE_PACKAGES))
 
 from src import GenerateData # type: ignore
 from src import MiscMethods # type:ignore
+
+DATA_DIR = BASE_DIR / "data"
 
 def sendReport(monthYear: str, *tags) -> bool:
     if not MiscMethods.isDate(monthYear): return False
@@ -11,7 +24,7 @@ def sendReport(monthYear: str, *tags) -> bool:
 
 def pullMonthYearData(**pullType) -> str | bool:    
     if "year" in pullType:
-        with open('data\\Months.json', 'r', newline='') as file:
+        with open(str(DATA_DIR / "Months.json"), 'r', newline='') as file:
             data = json.load(file)
 
         sortedData = MiscMethods.sortMonthJson(data)
@@ -25,7 +38,7 @@ def pullMonthYearData(**pullType) -> str | bool:
     elif "range" in pullType:
         startDate, endDate = pullType["range"]
 
-        with open('data\\Months.json', 'r', newline='') as file:
+        with open(str(DATA_DIR / "Months.json"), 'r', newline='') as file:
             data = json.load(file)
 
         if startDate not in data:
