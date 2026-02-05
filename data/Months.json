@@ -3,7 +3,7 @@
         "Losses": -3845.17,
         "Gains": 450.14,
         "Profit/Loss": -3395.0299999999997,
-        "Loss_Categories": {
+        "Purchase": {
             "gas": -89.02,
             "food_drink": -133.72,
             "subscription": -15.98,
@@ -12,7 +12,7 @@
             "NULL": -3150.0,
             "loan": -219.42
         },
-        "Gain_Categories": {
+        "Income": {
             "NULL": 450.0,
             "food_drink": 0.14
         }
@@ -21,7 +21,7 @@
         "Losses": -1318.7799999999997,
         "Gains": 1581.2199999999998,
         "Profit/Loss": 262.43999999999994,
-        "Loss_Categories": {
+        "Purchase": {
             "food_drink": -261.40000000000003,
             "cash": -100.0,
             "gas": -62.59,
@@ -30,7 +30,7 @@
             "NULL": -550.0,
             "loan": -219.42
         },
-        "Gain_Categories": {
+        "Income": {
             "NULL": 550.0,
             "food_drink": 1031.22
         }
@@ -39,13 +39,13 @@
         "Losses": -1081.7400000000002,
         "Gains": 2247.7,
         "Profit/Loss": 1165.96,
-        "Loss_Categories": {
+        "Purchase": {
             "shopping": -28.05,
             "food_drink": -489.7100000000001,
             "subscription": -13.98,
             "NULL": -550.0
         },
-        "Gain_Categories": {
+        "Income": {
             "NULL": 550.0,
             "food_drink": 1697.6999999999998
         }
@@ -66,7 +66,7 @@
         "Losses": -1931.9700000000003,
         "Gains": 3849.64,
         "Profit/Loss": 1917.67,
-        "Loss_Categories": {
+        "Purchase": {
             "food_drink": -681.6600000000002,
             "cash": -160.0,
             "shopping": -15.89,
@@ -74,7 +74,7 @@
             "misc": -32.08,
             "loan": -438.84
         },
-        "Gain_Categories": {
+        "Income": {
             "NULL": 600.0,
             "food_drink": 3249.64
         }
@@ -83,14 +83,14 @@
         "Losses": -941.5799999999999,
         "Gains": 2355.58,
         "Profit/Loss": 1414.0,
-        "Loss_Categories": {
+        "Purchase": {
             "subscription": -13.98,
             "food_drink": -218.67999999999998,
             "misc": -49.5,
             "NULL": -440.0,
             "loan": -219.42
         },
-        "Gain_Categories": {
+        "Income": {
             "NULL": 290.0,
             "food_drink": 2065.58
         }
