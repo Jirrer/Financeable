@@ -220,3 +220,26 @@ function initLogPage() {
 
   divElement.innerHTML = csvs.map(item => `<div>${item}</div>`).join('');
 }
+
+async function submitReport() {
+  const monthYearInput = document.getElementById("userMonthInput").value; 
+
+  if (monthYearInput != "") {
+    year = monthYearInput[0] + monthYearInput[1] + monthYearInput[2] + monthYearInput[3]
+    month = monthYearInput[5] + monthYearInput[6]
+
+    monthYear = month + "/" + year
+
+    const tags = ["-push", "-delete"];
+
+    const ok = await invoke("submit_report", { monthYear , tags });
+    
+    console.log(ok);
+
+    goLogPage();
+
+  } else {
+    console.error("Select a month & year")
+  }
+
+}

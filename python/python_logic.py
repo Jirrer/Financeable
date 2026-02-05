@@ -17,12 +17,10 @@ from src import MiscMethods # type:ignore
 
 DATA_DIR = BASE_DIR / "data"
 
-
-def sendReport(monthYear: str, *tags) -> bool:
-    if not MiscMethods.isDate(monthYear): return False
-
-    if GenerateData.Run(monthYear, tags): return True
-    else: return False
+def sendReport(monthYear: str, tags: list[str]) -> bool:
+    if not MiscMethods.isDate(monthYear):
+        return False
+    return GenerateData.Run(monthYear, tags)
 
 ### Accepted Types ###
 # year = YYYY
