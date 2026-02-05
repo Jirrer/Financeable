@@ -38,6 +38,7 @@ data/userInfo.json
 
 /target
 
+*.json
 *.PDF
 .env
 *.csv

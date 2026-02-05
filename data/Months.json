@@ -96,20 +96,22 @@
         }
     },
     "01/2026": {
-        "Profit/Loss": -419.44999999999993,
+        "Profit/Loss": 570.0600000000001,
         "Income": {
-            "Total": 1011.78,
-            "payroll": 1011.78
+            "Total": 2297.34,
+            "payroll": 2297.19,
+            "passive": 0.15
         },
         "Purchase": {
-            "Total": -495.23,
-            "food_drink": -109.16999999999999,
-            "misc": -386.06
+            "Total": -791.2800000000002,
+            "food_drink": -424.40000000000015,
+            "misc": -299.01,
+            "gas": -67.87
         },
         "Transfer": {
             "Total": -1252.98,
-            "external": -936.0,
-            "internal": -316.98
+            "internal": -316.98,
+            "external": -936.0
         }
     },
     "02/2026": {

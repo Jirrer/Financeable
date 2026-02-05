@@ -68,8 +68,9 @@ def organizeOutput(output: dict) -> dict:
 
     for key, val in output.items():
         newOutput["profits"].append((key, val['Profit/Loss']))
-        categories = val.get('categories', {}) if isinstance(val, dict) else {}
-        newOutput["categories"].append((key, categories))
+
+        newOutput["categories"].append((key, output[key]["Purchase"]))
+
 
     return newOutput
 
