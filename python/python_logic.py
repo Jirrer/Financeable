@@ -1,5 +1,4 @@
-import json
-import sys
+import json, sys, os
 from pathlib import Path
 
 # To-Do: erorr handle when json data is not formated (breaks frontend)
@@ -82,9 +81,15 @@ def organizeOutput(output: dict) -> dict:
 
     return newOutput
 
+def pullSumbittedFiles():
+    fileLocation = f'{BASE_DIR}\\ReportData'
+
+    return [f for f in os.listdir(fileLocation)]    
+
 
 def pullUserData():
     pass
 
 if __name__ == "__main__":
-    print((pullMonthYearData(range = ["01/2025", "12/2025"])))
+    # print((pullMonthYearData(range = ["01/2025", "12/2025"])))
+    print(pullSumbittedFiles())

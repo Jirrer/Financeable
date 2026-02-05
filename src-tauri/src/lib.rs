@@ -170,8 +170,19 @@ fn get_report_data(filter: DateFilter) -> Result<ReportData, String> {
 }
 
 #[tauri::command]
-fn get_log_data() -> String {
-    "Log data from Rust".to_string()
+fn get_user_csv() -> Result<Vec<String>, String> {
+    pyo3::Python::with_gil(|py| {
+        let engine = get_engine()?;
+        let logic = engine.as_ref(py);
+
+        let result = logic
+            .getattr("pullSumbittedFiles")?
+            .call0()?;
+
+        let files: Vec<String> = result.extract()?;
+        Ok(files)
+    })
+    .map_err(|e: PyErr| e.to_string())
 }
 
 // =========================
@@ -184,7 +195,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             get_report_data,
-            get_log_data
+            get_user_csv
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

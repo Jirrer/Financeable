@@ -1,5 +1,17 @@
 const { invoke } = window.__TAURI__.core;
 
+document.addEventListener('DOMContentLoaded', () => {
+  const path = window.location.pathname.toLowerCase();
+
+  if (path.endsWith('reportpage.html')) {
+    initReportPage();
+  }
+
+  if (path.endsWith('logpage.html')) {
+    initLogPage();
+  }
+});
+
 async function initApp() {
   try {
     // Pass year as object
@@ -196,11 +208,15 @@ function setUserInsights(value){
 }
 
 async function goLogPage() {
-  try {
-    const data = await invoke('get_log_data');
-    console.log('Log data:', data);
-  } catch (error) {
-    console.error('Error fetching log data:', error);
-  }
+  const csvs = await invoke('get_user_csv');
+  sessionStorage.setItem('userSubmittedCSVs', JSON.stringify(csvs));
   window.location.href = "logPage.html";
+}
+
+function initLogPage() {
+  const csvs = JSON.parse(sessionStorage.getItem('userSubmittedCSVs') || '[]');
+
+  const divElement = document.getElementById("selectedMonthYears");
+
+  divElement.innerHTML = csvs.map(item => `<div>${item}</div>`).join('');
 }
