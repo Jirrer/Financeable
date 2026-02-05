@@ -138,5 +138,37 @@ body {
 
 .searchBanks {
   height: 43vh;
+  display: flex;
 }
+
+#searchBanksList {
+  width: 100%;
+  flex: 7;
+}
+
+.searchControls {
+  display: flex;
+  justify-content: right;
+  flex: 1;
+  height: 10%;
+}
+
+#bankSearchInput {
+  width: 100%;
+}
+
+#bankSearchButton {
+  width: 100%;
+}
+
+.bankCard {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.bankCard:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+
 

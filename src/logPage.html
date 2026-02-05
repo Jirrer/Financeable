@@ -16,16 +16,23 @@
     </div>
     <div class="logsContent">
       <div class="submitDiv">
-      <input type="month" id="userMonthInput" name="userMonthInput">
-      <div id="selectedMonthYears"></div>
-      <button id="submitReportButton" onclick="submitReport()">Submit -></button>
-    </div>
+        <input type="month" id="userMonthInput" name="userMonthInput">
+        <div id="selectedMonthYears"></div>
+        <button id="submitReportButton" onclick="submitReport()">Submit -></button>
+      </div>
+
       <div class="favoriteBanks">
-        favorites
-    </div>
+        <h3>Favorites</h3>
+        <div id="favoriteBanksList"></div>
+      </div>
+
       <div class="searchBanks">
-        search banks
-    </div>
+        <div id="searchBanksList"></div>
+        <div class="searchControls">
+          <input type="text" id="bankSearchInput" placeholder="Search banks..." />
+          <button id="bankSearchButton" onclick="searchBanks()">Search</button>
+        </div>
+      </div>
     </div>
     </main>
   </body>

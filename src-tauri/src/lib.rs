@@ -208,6 +208,29 @@ fn submit_report(month_year: String, tags: Option<Vec<String>>) -> Result<bool, 
     })
 }
 
+#[tauri::command]
+fn download_bank_file(bank_id: String, file_path: String) -> Result<String, String> {    
+    pyo3::Python::with_gil(|py| {
+        let engine = get_engine()?;
+        let logic = engine.as_ref(py);
+        
+        let result = logic
+            .getattr("downloadBankFile")?
+            .call1((bank_id.clone(), file_path.clone()))?;
+
+        let success: bool = result.extract()?;
+        
+        if success {
+            Ok(format!("Bank data downloaded to {}", file_path))
+        } else {
+            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Failed to download bank file"))
+        }
+    })
+    .map_err(|e: PyErr| {
+        e.to_string()
+    })
+}
+
 // =========================
 // App Entry Point
 // =========================
@@ -216,10 +239,12 @@ fn submit_report(month_year: String, tags: Option<Vec<String>>) -> Result<bool, 
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             get_report_data,
             get_user_csv,
-            submit_report
+            submit_report,
+            download_bank_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
