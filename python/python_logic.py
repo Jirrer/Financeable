@@ -18,11 +18,16 @@ from src import MiscMethods # type:ignore
 
 DATA_DIR = BASE_DIR / "data"
 
+
 def sendReport(monthYear: str, *tags) -> bool:
     if not MiscMethods.isDate(monthYear): return False
 
     if GenerateData.Run(monthYear, tags): return True
     else: return False
+
+### Accepted Types ###
+# year = YYYY
+# range = ["MM/YYYY", "MM/YYYY"]
 
 def pullMonthYearData(**pullType) -> str | bool:    
     if "year" in pullType:
@@ -69,10 +74,11 @@ def organizeOutput(output: dict) -> dict:
     newOutput = {'profits': [], 'categories': []}
 
     for key, val in output.items():
-        newOutput["profits"].append((key, val['Profit/Loss']))
+        try: newOutput["profits"].append((key, val['Profit/Loss']))
+        except KeyError: newOutput["profits"].append((key, {}))
 
-        newOutput["categories"].append((key, output[key]["Purchase"]))
-
+        try: newOutput["categories"].append((key, output[key]["Purchase"]))
+        except KeyError: newOutput["categories"].append((key, {}))
 
     return newOutput
 
@@ -81,4 +87,4 @@ def pullUserData():
     pass
 
 if __name__ == "__main__":
-    print((pullMonthYearData(year = 2026)))
+    print((pullMonthYearData(range = ["01/2025", "12/2025"])))

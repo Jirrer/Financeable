@@ -2,7 +2,8 @@ const { invoke } = window.__TAURI__.core;
 
 async function initApp() {
   try {
-    const data = await invoke('get_report_data', { year: 2026 });
+    // Pass year as object
+    const data = await invoke('get_report_data', { filter: { year: 2026 } });
     sessionStorage.setItem('reportData', JSON.stringify(data));
     initReportPage();
   } catch (error) {
@@ -10,11 +11,11 @@ async function initApp() {
   }
 }
 
-window.addEventListener('load', initApp);
-
 async function goReportPage() {
   try {
-    const data = await invoke('get_report_data', { year: 2026 });
+    // Or pass range as object
+    // const data = await invoke('get_report_data', { filter: { range: ["01/2025", "12/2025"] } });
+    const data = await invoke('get_report_data', { filter: { range: ["01/2025", "12/2026"] } });
     
     sessionStorage.setItem('reportData', JSON.stringify(data));
     window.location.href = "reportPage.html";
