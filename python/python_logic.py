@@ -2,6 +2,8 @@ import json
 import sys
 from pathlib import Path
 
+# To-Do: erorr handle when json data is not formated (breaks frontend)
+
 BASE_DIR = Path(__file__).resolve().parents[1]
 PYTHON_DIR = BASE_DIR / "python"
 if str(PYTHON_DIR) not in sys.path:
