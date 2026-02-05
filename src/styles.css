@@ -106,6 +106,29 @@ body {
   background-color: #B2BEB5;
   height: 10vh;
   border-bottom: 0.5vh solid black;
+  display: flex;
+  width: 100%;
+}
+
+#userMonthInput {
+  flex: 1;
+  width: 100%;
+  font-size: 1.25rem;
+}
+
+#selectedMonthYears {
+  flex: 4;
+  width: 100%;
+}
+
+#selectedMonthYears div {
+  font-size: large;
+}
+
+#submitReportButton {
+  flex: 1;
+  width: 100%;
+  font-size: xx-large;
 }
 
 .favoriteBanks {
@@ -116,3 +139,4 @@ body {
 .searchBanks {
   height: 43vh;
 }
+
