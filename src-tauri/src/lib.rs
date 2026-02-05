@@ -185,6 +185,29 @@ fn get_user_csv() -> Result<Vec<String>, String> {
     .map_err(|e: PyErr| e.to_string())
 }
 
+#[tauri::command]
+fn submit_report(month_year: String, tags: Option<Vec<String>>) -> Result<bool, String> {
+    println!("submit_report called: {} {:?}", month_year, tags);
+
+    pyo3::Python::with_gil(|py| {
+        let engine = get_engine()?;
+        let logic = engine.as_ref(py);
+
+        let tags = tags.unwrap_or_default();
+
+        let result = logic
+            .getattr("sendReport")?
+            .call1((month_year, tags))?;
+
+        let outcome: bool = result.extract()?;
+        Ok(outcome)
+    })
+    .map_err(|e: PyErr| {
+        eprintln!("submit_report error: {}", e);
+        e.to_string()
+    })
+}
+
 // =========================
 // App Entry Point
 // =========================
@@ -195,7 +218,8 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             get_report_data,
-            get_user_csv
+            get_user_csv,
+            submit_report
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

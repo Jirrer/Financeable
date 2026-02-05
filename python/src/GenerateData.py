@@ -15,6 +15,8 @@ if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
 
 CLASSIFIERS_DIR = BASE_DIR / "classifiers"
 DATA_DIR = BASE_DIR / "data"
+REPORT_DIR = (BASE_DIR / "ReportData").resolve()
+REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
 class TransactionType(Enum):
     Income = 'income'
@@ -124,7 +126,7 @@ def getAcurateMonthTotal(transactions: list[PullTransactions.Transaction]):
     return total
 
 def pushData(report):
-    filePath = str(DATA_DIR / "Months.json")
+    filePath = str(BASE_DIR / "Data\\Months.json")
 
     if not os.path.exists(filePath): data = []
     else:

@@ -148,5 +148,24 @@
             "external": -936.0,
             "internal": -316.98
         }
+    },
+    "12/2026": {
+        "Profit/Loss": 570.0600000000001,
+        "Income": {
+            "Total": 2297.34,
+            "passive": 0.15,
+            "payroll": 2297.19
+        },
+        "Purchase": {
+            "Total": -791.2800000000002,
+            "misc": -299.01,
+            "gas": -67.87,
+            "food_drink": -424.40000000000015
+        },
+        "Transfer": {
+            "Total": -1252.98,
+            "internal": -316.98,
+            "external": -936.0
+        }
     }
 }

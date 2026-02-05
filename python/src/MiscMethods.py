@@ -4,6 +4,9 @@ from pathlib import Path
 from datetime import datetime
 
 BASE_DIR = Path(__file__).resolve().parents[2]
+REPORT_DIR = (BASE_DIR / "ReportData").resolve()
+REPORT_DIR.mkdir(parents=True, exist_ok=True)
+
 PYTHON_DIR = BASE_DIR / "python"
 if str(PYTHON_DIR) not in sys.path:
     sys.path.insert(0, str(PYTHON_DIR))
@@ -56,9 +59,13 @@ def sortMonthJson(data: dict) -> dict:
     return dict(sortedData)
 
 def getFileLocations() -> list[tuple[str, str]]: #[(Bank Name, FileName)]
-    fileNames = [f for f in os.listdir('ReportData')]
+    fileNames = [f for f in os.listdir(REPORT_DIR)]
 
-    output = [(pullBankName(file), f'ReportData\\{file}') for file in fileNames if os.path.exists(f'ReportData\\{file}')]
+    output = [
+        (pullBankName(file), str(REPORT_DIR / file))
+        for file in fileNames
+        if (REPORT_DIR / file).exists()
+    ]
 
     return output
 
