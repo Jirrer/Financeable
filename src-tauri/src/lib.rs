@@ -89,18 +89,34 @@ struct ReportData {
     insights: String,
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(untagged)]
+enum DateFilter {
+    Year { year: i32 },
+    Range { range: (String, String) },
+}
+
 // =========================
 // Tauri Commands
 // =========================
 
 #[tauri::command]
-fn get_report_data(year: i32) -> Result<ReportData, String> {
+fn get_report_data(filter: DateFilter) -> Result<ReportData, String> {
     pyo3::Python::with_gil(|py| {
         let engine = get_engine()?;
         let logic = engine.as_ref(py);
 
         let kwargs = PyDict::new(py);
-        kwargs.set_item("year", year)?;
+        
+        match filter {
+            DateFilter::Year { year } => {
+                kwargs.set_item("year", year)?;
+            }
+            DateFilter::Range { range } => {
+                let py_tuple = pyo3::types::PyTuple::new(py, &[range.0, range.1]);
+                kwargs.set_item("range", py_tuple)?;
+            }
+        }
 
         let result = logic
             .getattr("pullMonthYearData")?
