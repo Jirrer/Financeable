@@ -1,4 +1,5 @@
 const { invoke } = window.__TAURI__.core;
+const { open } = window.__TAURI__.dialog;
 
 document.addEventListener('DOMContentLoaded', () => {
   const path = window.location.pathname.toLowerCase();
@@ -213,12 +214,64 @@ async function goLogPage() {
   window.location.href = "logPage.html";
 }
 
+const banksData = [
+  { id: "fifth_third", name: "Fifth Third", favorite: true },
+  { id: "temp_1", name: "Northline Credit Union", favorite: false },
+  { id: "american_express", name: "American Express", favorite: true },
+  { id: "temp_2", name: "Harbor Savings", favorite: false },
+  { id: "temp_3", name: "Pioneer Bank", favorite: false }
+];
+
 function initLogPage() {
   const csvs = JSON.parse(sessionStorage.getItem('userSubmittedCSVs') || '[]');
 
   const divElement = document.getElementById("selectedMonthYears");
-
   divElement.innerHTML = csvs.map(item => `<div>${item}</div>`).join('');
+
+  renderFavoriteBanks();
+  renderSearchBanks(banksData);
+}
+
+function renderFavoriteBanks() {
+  const favorites = banksData.filter(b => b.favorite);
+  const container = document.getElementById("favoriteBanksList");
+  container.innerHTML = favorites.map(b => bankCardHtml(b)).join('') || "<div>No favorites yet.</div>";
+}
+
+function renderSearchBanks(list) {
+  const container = document.getElementById("searchBanksList");
+  container.innerHTML = list.map(b => bankCardHtml(b)).join('') || "<div>No banks found.</div>";
+}
+
+function bankCardHtml(bank) {
+  return `
+    <div class="bankCard" data-id="${bank.id}" onclick="downloadBankData('${bank.id}')">
+      <div class="bankName">${bank.name}${bank.favorite ? ' ★' : ''}</div>
+    </div>
+  `;
+}
+
+async function downloadBankData(bankId) {
+  try {
+    const filePath = await open({
+      multiple: false,
+      filters: [{ name: 'CSV', extensions: ['csv'] }]
+    });
+    
+    if (filePath) {
+      await invoke('download_bank_file', { bankId, filePath });
+    }
+  } catch (error) {
+    console.error(`Error downloading bank data:`, error);
+  }
+
+  goLogPage();
+}
+
+function searchBanks() {
+  const query = (document.getElementById("bankSearchInput").value || "").toLowerCase().trim();
+  const filtered = banksData.filter(b => b.name.toLowerCase().includes(query));
+  renderSearchBanks(filtered);
 }
 
 async function submitReport() {

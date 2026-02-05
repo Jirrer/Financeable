@@ -1,4 +1,5 @@
-import json, sys, os
+import json, sys, os, shutil
+from datetime import datetime 
 from pathlib import Path
 
 # To-Do: erorr handle when json data is not formated (breaks frontend)
@@ -84,10 +85,24 @@ def pullSumbittedFiles():
 
     return [f for f in os.listdir(fileLocation)]    
 
+def downloadBankFile(bank_id, filepath) -> bool:
+    safe_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    fileName = f"{bank_id}#{safe_ts}"
+
+    try:
+        shutil.copy(filepath, f'{BASE_DIR}\\ReportData\\{fileName}.csv')
+
+        return True
+
+    except Exception as e:
+        print(e)
+        return False
+
 
 def pullUserData():
     pass
 
 if __name__ == "__main__":
     # print((pullMonthYearData(range = ["01/2025", "12/2025"])))
-    print(pullSumbittedFiles())
+    # print(pullSumbittedFiles())
+    print(downloadBankFile("test", "test"))
