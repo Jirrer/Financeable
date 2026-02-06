@@ -18,21 +18,22 @@
         }
     },
     "08/2025": {
-        "Losses": -1318.7799999999997,
-        "Gains": 1581.2199999999998,
-        "Profit/Loss": 262.43999999999994,
-        "Purchase": {
-            "food_drink": -261.40000000000003,
-            "cash": -100.0,
-            "gas": -62.59,
-            "misc": -99.0,
-            "shopping": -26.369999999999997,
-            "NULL": -550.0,
-            "loan": -219.42
-        },
+        "Profit/Loss": 262.44000000000005,
         "Income": {
-            "NULL": 550.0,
-            "food_drink": 1031.22
+            "Total": 1031.22,
+            "passive": 0.15,
+            "payroll": 1031.07
+        },
+        "Purchase": {
+            "Total": -668.78,
+            "misc": -378.78,
+            "food_drink": -255.41000000000003,
+            "gas": -34.59
+        },
+        "Transfer": {
+            "Total": -100.0,
+            "external": -100.0,
+            "internal": 0.0
         }
     },
     "10/2025": {
@@ -166,6 +167,22 @@
             "Total": -1252.98,
             "internal": -316.98,
             "external": -936.0
+        }
+    },
+    "10/2026": {
+        "Profit/Loss": 3127.25,
+        "Income": {
+            "Total": 4382.92,
+            "passive": 0.32999999999999996,
+            "payroll": 4382.59
+        },
+        "Purchase": {
+            "Total": 0
+        },
+        "Transfer": {
+            "Total": -3430.67,
+            "external": -1255.67,
+            "internal": -2175.0
         }
     }
 }

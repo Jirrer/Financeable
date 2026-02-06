@@ -54,7 +54,7 @@ def buildModel(classifierType:enum.Enum):
     joblib.dump(model, str(CLASSIFIERS_DIR / f"{classifierType.value}Classifier.joblib"))
 
 if __name__ == "__main__":
-    buildModel(ClassifierType.Transaction)
-    buildModel(ClassifierType.Income)
+    # buildModel(ClassifierType.Transaction)
+    # buildModel(ClassifierType.Income)
     buildModel(ClassifierType.Purchase)
-    buildModel(ClassifierType.Transfer)
+    # buildModel(ClassifierType.Transfer)

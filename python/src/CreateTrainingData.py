@@ -1,5 +1,6 @@
 import csv, joblib, sys, os
 from pathlib import Path
+from enum import Enum
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 PYTHON_DIR = BASE_DIR / "python"
@@ -12,6 +13,12 @@ if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
 
 from python.src.MiscMethods import getFileLocations
 import python.src.PullTransactions as PullTransactions
+
+class Models(Enum):
+    Transaction = joblib.load("classifiers\\TransactionClassifier.joblib")
+    Income = joblib.load("classifiers\\IncomeClassifier.joblib")
+    Purchase = joblib.load("classifiers\\PurchaseClassifier.joblib")
+    Transfer = joblib.load("classifiers\\TransferClassifier.joblib")
 
 def findNewTransactionTypes():
     training_dir = BASE_DIR / "TrainingData"
@@ -96,9 +103,29 @@ def orderTrainingData():
             for index in range(len(output)):
                 if index == len(output) - 1: file.write(output[index])
                 else: file.write(f"{output[index]}\n")
+
+
+def splitRawTransactions(filePath):
+    groups = {'income': [], 'transfer': [], 'purchase': []}
+
+    with open(filePath, 'r', newline='') as file:
+        for row in file:
+            groups[Models.Transaction.value.predict([row])[0]].append(row.replace('\n', ''))
+
+    for key in groups.keys():
+        print(key)
+
+        for val in groups[key]:
+            print(val)
+
+        print("\n\n")
+
+
+
         
 if __name__ == "__main__": 
-    findNewTransactionTypes()
+    splitRawTransactions('C:\\Projects\\financeable\\training_data.CSV')
+    # findNewTransactionTypes()
 
-    if len(sys.argv) > 1 and sys.argv[1].lower() == "-order":
-        orderTrainingData()
+    # if len(sys.argv) > 1 and sys.argv[1].lower() == "-order":
+    #     orderTrainingData()

@@ -130,8 +130,6 @@ function setLineChart(value){
 
 function setPurchaseCategories(value){
   const divElement = document.getElementById("purchaseCategoriesData");
-
-  console.log(value) // remove
   
   divElement.innerHTML = '<canvas id="purchasesChart" style="width: 100%; height: 100%;"></canvas>';
   
