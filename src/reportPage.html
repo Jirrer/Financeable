@@ -16,6 +16,14 @@
     </div>
     <div class="reportsContent">
       <div class="monthsReport">
+        <label id="rangeSelect">
+          Select Year: 
+          <input type="number" id="yearInput" min="1900" max="2100" placeholder="YYYY">
+          Or select Date Range:
+          <input type="month" id="startRange">
+          <input type="month" id="endRange">
+        </label>
+        <button onclick="updateSelection()">Submit</button>
         <div id="lineChartData"></div>
       </div>
       <div class="purchaseCategories">
