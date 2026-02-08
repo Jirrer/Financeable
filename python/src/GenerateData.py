@@ -3,6 +3,7 @@ from pathlib import Path
 from enum import Enum
 from . import PullTransactions
 from .MiscMethods import getFileLocations, isDate
+from .NormalizeData import normalizePurchase
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 PYTHON_DIR = BASE_DIR / "python"
@@ -80,8 +81,13 @@ def catTransactions(transactions: list) -> list:
 
     for t in transactions:
         match (t.group):
-            case TransactionType.Income.value: t.category = incomeModel.predict([t.info])[0]
-            case TransactionType.Purchase.value: t.category = purchaseModel.predict([t.info])[0]
+            case TransactionType.Income.value: 
+                t.category = incomeModel.predict([t.info])[0]
+                
+            case TransactionType.Purchase.value: 
+                t.info = normalizePurchase(t.info)
+                t.category = purchaseModel.predict([t.info])[0]
+
             case TransactionType.Transfer.value: t.category = transferModel.predict([t.info])[0]
             case _: continue
 
