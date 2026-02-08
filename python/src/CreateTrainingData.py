@@ -13,6 +13,7 @@ if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
 
 from python.src.MiscMethods import getFileLocations
 import python.src.PullTransactions as PullTransactions
+from python.src.NormalizeData import normalizePurchase
 
 class Models(Enum):
     Transaction = joblib.load("classifiers\\TransactionClassifier.joblib")
@@ -121,90 +122,17 @@ def splitRawTransactions(filePath):
         print("\n\n")
 
 
-US_STATES = {
-    "al","ak","az","ar","ca","co","ct","de","fl","ga","hi","id","il","in","ia","ks",
-    "ky","la","me","md","ma","mi","mn","ms","mo","mt","ne","nv","nh","nj","nm","ny",
-    "nc","nd","oh","ok","or","pa","ri","sc","sd","tn","tx","ut","vt","va","wa","wv","wi","wy"
-}
 
 def normalizePurchaseData(filePath: str):
     output = []
 
     with open (filePath, 'r', newline='') as file:
         for row in file:
-            row = row.replace('\n', '')
-            row = stripBankBoilerPlate(row)
-            row = stripLocations(row)
-            row = stripDates(row)
-            row = stripSpecialChars(row)
-            row = removeExtraSpace(row)
-
-            output.append(row)
+            output.append(normalizePurchase(row))
 
     for x in output:
         print(x)
 
-
-def stripBankBoilerPlate(text):
-    text = text.replace('DEBIT CARD PURCHASE','')
-    text = text.replace('MERCHANT PAYMENT','')
-
-    return text
-
-def stripStoreNumbers(text):
-    text = re.sub(r'store\s*\d+', '', text)
-
-    text = re.sub(r'#\s*\d+', '', text)
-
-    text = re.sub(r'\b[a-z]-\d+\b', '', text)
-
-    text = re.sub(r'\b\d{3,}\b', '', text)
-
-    return text
-
-def stripLocations(text):
-    text = re.sub(r'\b\d{5}(-\d{4})?\b', '', text)
-
-    # Remove "city state" patterns at end
-    text = re.sub(r'\b[a-z]+\s+(?:' + '|'.join(US_STATES) + r')\b', '', text)
-
-    text = re.sub(r'\s+(' + '|'.join(US_STATES) + r')$', '', text)
-
-    # Remove comma location sections
-    text = re.sub(r',.*$', '', text)
-
-    return text
-
-def stripDates(text):
-    # Remove slash dates (03/22, 11/14/25)
-    text = re.sub(r'\b\d{1,2}/\d{1,2}(/\d{2,4})?\b', '', text)
-
-    # Remove dash dates (2024-01-15)
-    text = re.sub(r'\b\d{4}-\d{2}-\d{2}\b', '', text)
-
-    # Remove compact date numbers (111425, 20240115)
-    text = re.sub(r'\b\d{6,8}\b', '', text)
-
-    # Remove long standalone numbers (store IDs, references)
-    text = re.sub(r'\b\d{4,}\b', '', text)
-
-    # Remove masked card numbers
-    text = re.sub(r'x+\d*', '', text)
-
-    return text
-
-def stripSpecialChars(text):
-    text = re.sub(r'\b[xX]{4,}[0-9]*[xX]*\b', '', text)
-
-    return text
-
-def removeExtraSpace(text):
-    text = text.lower()
-
-    # Remove leading quotes, spaces, and similar junk
-    text = re.sub(r'^[\s"\']+', '', text)
-
-    return text
 
 
 
