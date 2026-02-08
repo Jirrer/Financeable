@@ -1,10 +1,15 @@
 const { invoke } = window.__TAURI__.core;
 const { open } = window.__TAURI__.dialog;
 
+let appInitialized = false;
+
 document.addEventListener('DOMContentLoaded', () => {
+  initApp();
+  
   const path = window.location.pathname.toLowerCase();
 
   if (path.endsWith('reportpage.html')) {
+    loadSelectionInputs();
     initReportPage();
   }
 
@@ -14,23 +19,86 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initApp() {
+  if (appInitialized) return;
+  appInitialized = true;
+  
   try {
-    // Pass year as object
-    const data = await invoke('get_report_data', { filter: { year: 2026 } });
-    sessionStorage.setItem('reportData', JSON.stringify(data));
-    initReportPage();
+    // Set defaults if nothing is stored
+    if (!localStorage.getItem('reportYear') && !localStorage.getItem('reportRangeStart')) {
+      localStorage.setItem('reportYear', '2026');
+    }
+    updateReportData();
   } catch (error) {
     console.error('Error initializing app:', error);
   }
 }
 
+function loadSelectionInputs() {
+  const year = localStorage.getItem('reportYear');
+  const start = localStorage.getItem('reportRangeStart');
+  const end = localStorage.getItem('reportRangeEnd');
+
+  if (year) {
+    document.getElementById('yearInput').value = year;
+  } else if (start && end) {
+    document.getElementById('startRange').value = start;
+    document.getElementById('endRange').value = end;
+  }
+}
+
+function updateSelection() {
+  const year = document.getElementById('yearInput').value;
+  const start = document.getElementById('startRange').value;
+  const end = document.getElementById('endRange').value;
+
+  if (year) {
+      localStorage.setItem('reportYear', year);
+      localStorage.removeItem('reportRangeStart');
+      localStorage.removeItem('reportRangeEnd');
+  } else if (start && end) {
+      if (new Date(start) > new Date(end)) {
+          alert("Start date cannot be after end date.");
+          return;
+      }
+      localStorage.removeItem('reportYear');
+      localStorage.setItem('reportRangeStart', start);
+      localStorage.setItem('reportRangeEnd', end);
+  } else {
+      alert("Please select either a year or a date range.");
+      return;
+  }
+
+  updateReportData().then(() => {
+    initReportPage();
+  });
+}
+
+async function updateReportData() {
+  const reportYear = localStorage.getItem('reportYear');
+  const reportRangeStart = localStorage.getItem('reportRangeStart');
+  const reportRangeEnd = localStorage.getItem('reportRangeEnd');
+
+  if (reportYear) {
+    const data = await invoke('get_report_data', { filter: { year: parseInt(reportYear) } });
+    sessionStorage.setItem('reportData', JSON.stringify(data));
+  } else if (reportRangeStart && reportRangeEnd) {
+    // Convert YYYY-MM to MM/YYYY format with zero-padded month
+    const formatDate = (dateStr) => {
+      const [year, month] = dateStr.split('-');
+      return `${month}/${year}`;
+    };
+    
+    const start = formatDate(reportRangeStart);
+    const end = formatDate(reportRangeEnd);
+    const data = await invoke('get_report_data', { filter: { range: [start, end] } });
+    sessionStorage.setItem('reportData', JSON.stringify(data));
+  }
+}
+
 async function goReportPage() {
   try {
-    // Or pass range as object
-    // const data = await invoke('get_report_data', { filter: { range: ["01/2025", "12/2025"] } });
-    const data = await invoke('get_report_data', { filter: { range: ["01/2025", "12/2026"] } });
+    updateReportData();
     
-    sessionStorage.setItem('reportData', JSON.stringify(data));
     window.location.href = "reportPage.html";
     
   } catch (error) {
