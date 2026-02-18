@@ -1,3 +1,18 @@
+# Misc
+*.PDF
+.env
+*.csv
+*.joblib
+data.json
+*.db
+/env
+/Finianceable/bin/Debug/net8.0-windows/env
+/data/*.json
+/__pycache__
+!Data Flow.pdf
+!src-tauri/tauri.conf.json
+
+
 # Logs
 logs
 *.log
@@ -22,17 +37,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-*.PDF
-.env
-*.csv
-*.joblib
-data.json
-*.db
-/env
-/Finianceable/bin/Debug/net8.0-windows/env
-data/userInfo.json
-!Data Flow.pdf
 
 # Added by cargo
 

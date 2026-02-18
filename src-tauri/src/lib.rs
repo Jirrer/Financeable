@@ -60,13 +60,13 @@ fn init_python_engine() -> PyResult<Py<PyAny>> {
         path_obj.call_method1("insert", (0, middleware))?;
 
         // Try import
-        match py.import("python_logic") {
+        match py.import("middleware") {
             Ok(logic_mod) => {
-                eprintln!("Successfully imported python_logic");
+                eprintln!("Successfully imported middleware");
                 Ok(logic_mod.into())
             },
             Err(e) => {
-                eprintln!("Failed to import python_logic: {}", e);
+                eprintln!("Failed to import middleware: {}", e);
                 e.print(py);
                 Err(e)
             }
