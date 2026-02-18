@@ -86,6 +86,19 @@ def pullBankName(fileName: str) -> str:
 
     return 'INVALID_BANK'
 
+def validMonthYear(possibleMonthYear: str) -> bool:
+    if type(possibleMonthYear) != str:
+        return False
+
+    formats = ["%m/%Y", "%m-%Y", "%m_%Y"]
+    for fmt in formats:
+        try:
+            datetime.strptime(possibleMonthYear, fmt)
+            return True
+        except ValueError:
+            continue
+    return False
+
 def isDate(string: str) -> bool:
     formats = ["%m/%Y", "%m-%d", "%m-%d-%Y", "%m-%d-%y", "%m/%d", "%m/%d/%Y", "%m/%d/%y"]
     for fmt in formats:
