@@ -46,22 +46,45 @@ class Models(Enum):
     Purchase = joblib.load(str(CLASSIFIERS_DIR / "PurchaseClassifier.joblib"))
     Transfer = joblib.load(str(CLASSIFIERS_DIR / "TransferClassifier.joblib"))
 
-monthYear = None
 
-def main() -> list[dict, list]:  
+def Run(monthYear: str, tags: list) -> bool:
+    if not isDate(monthYear):
+        print("Bad date given - exiting")
+        exit(3)
+
+    print(f'Running Generation for {monthYear}') 
+
+    transactions = getTransactions()
+
+    report = prepareReport(transactions)
+
+    print("Finished Report")
+
+    deleted = False
+    pushed = False
+
+    for t in tags:
+        match t.lower():
+            case '-delete': clearDataFiles(); deleted = True
+            case '-push': pushData(report, monthYear); pushed = True
+            case '-print': printOutput(report, transactions)
+            case _: continue
+    
+    print(f"Deleted: {deleted}") 
+    print(f"Pushed: {pushed}") 
+
+    return True
+
+def getTransactions():
     csvFileLocations = getFileLocations() # To-Do: refactor ('getfilelocations' is too broad)
 
-    transactionsByBank = [PullTransactions.run(c[0], c[1]) for c in csvFileLocations] # To-Do: refactor ('getfilelocations' is too broad)
+    transactionsByBank = [PullTransactions.run(c[0], c[1]) for c in csvFileLocations] 
 
     rawTransactions = [t for bank in transactionsByBank for t in bank]
 
     groupedTransactions = groupTransactions(rawTransactions)
 
-    categorizedTransactions = catTransactions(groupedTransactions)   
-
-    report = prepareReport(categorizedTransactions)
-
-    return report, categorizedTransactions
+    return categorizeTransactions(groupedTransactions)  
 
 
 def groupTransactions(transactions: list) -> list:
@@ -74,7 +97,7 @@ def groupTransactions(transactions: list) -> list:
 
     return transactions
 
-def catTransactions(transactions: list) -> list:
+def categorizeTransactions(transactions: list) -> list:
     incomeModel = Models.Income.value
     purchaseModel = Models.Purchase.value
     transferModel = Models.Transfer.value
@@ -109,15 +132,6 @@ def prepareReport(transactions: list[PullTransactions.Transaction]) -> dict:
 
     return output
 
-def getTransactionGroups(transactions: list[PullTransactions.Transaction]) -> list:
-    incomeTotal = [t for t in transactions if t.group == TransactionType.Income.value]
-
-    purchaseTotal = [t for t in transactions if t.group == TransactionType.Purchase.value]
-
-    transferTotal = [t for t in transactions if t.group == TransactionType.Transfer.value]
-
-    return ((TransactionType.Income, incomeTotal), (TransactionType.Purchase, purchaseTotal), (TransactionType.Transfer, transferTotal))
-
 def getAcurateMonthTotal(transactions: list[PullTransactions.Transaction]):
     total = 0
 
@@ -131,7 +145,16 @@ def getAcurateMonthTotal(transactions: list[PullTransactions.Transaction]):
 
     return total
 
-def pushData(report):
+def getTransactionGroups(transactions: list[PullTransactions.Transaction]) -> list:
+    incomeTotal = [t for t in transactions if t.group == TransactionType.Income.value]
+
+    purchaseTotal = [t for t in transactions if t.group == TransactionType.Purchase.value]
+
+    transferTotal = [t for t in transactions if t.group == TransactionType.Transfer.value]
+
+    return ((TransactionType.Income, incomeTotal), (TransactionType.Purchase, purchaseTotal), (TransactionType.Transfer, transferTotal))
+
+def pushData(report, monthYear):
     filePath = str(BASE_DIR / "Data\\Months.json")
 
     if not os.path.exists(filePath): data = []
@@ -157,47 +180,11 @@ def printOutput(report, transactions):
     
     for tran in transactions:
         print(tran)
-
-def Run(monthYearInput: str, tags: list) -> bool:
-    global monthYear
-    monthYear = monthYearInput
-
-    report, transactions = main()
-
-    print("Finished Report")
-
-    deleted = False
-    pushed = False
-
-    for t in tags:
-        match t.lower():
-            case '-delete': clearDataFiles(); deleted = True
-            case '-push': pushData(report); pushed = True
-            case '-print': printOutput(report, transactions)
-            case _: continue
-
-    print(f"Deleted: {deleted}") 
-    print(f"Pushed: {pushed}") 
-
-    return True
     
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        monthYear = sys.argv[1]
+    if len(sys.argv) <= 1:
+        print("Month was not included")
+        sys.exit(3)
 
-        if not isDate(monthYear):
-            print("Bad date given - exiting")
-            exit(3)
-      
-        print(f'Running Generation for {monthYear}')
-        report, transactions = main(); print(" * Script Ended")
-
-        for tag in sys.argv[2:]:
-            match tag.lower():
-                case '-delete': clearDataFiles(); print(" * Cleared data CSV files")
-                case '-push': pushData(report); print(" * Pushed Data")
-                case '-print': printOutput(report, transactions)
-                case _: print(f"Tag '{tag}' is not recognized and was not ran")
-    else:
-        print("Month was not included"); sys.exit(3)
+    Run(sys.argv[1], sys.argv[2:])

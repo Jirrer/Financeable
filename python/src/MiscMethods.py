@@ -86,7 +86,6 @@ def pullBankName(fileName: str) -> str:
 
     return 'INVALID_BANK'
 
-
 def isDate(string: str) -> bool:
     formats = ["%m/%Y", "%m-%d", "%m-%d-%Y", "%m-%d-%y", "%m/%d", "%m/%d/%Y", "%m/%d/%y"]
     for fmt in formats:
