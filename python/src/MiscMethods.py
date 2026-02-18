@@ -2,6 +2,7 @@ import os
 import sys
 from pathlib import Path
 from datetime import datetime
+from .PullTransactions import SupportedBanks
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 REPORT_DIR = (BASE_DIR / "ReportData").resolve()
@@ -73,9 +74,18 @@ def pullBankName(fileName: str) -> str:
     if type(fileName) != str: return 'INVALID_BANK'
 
     for index in range(len(fileName)):
-        if fileName[index] == '#': return ''.join(fileName[:index])
+        if fileName[index] == '#':
+            possibleName = ''.join(fileName[:index])
+
+            try:
+                SupportedBanks(possibleName)
+                return possibleName
+            
+            except ValueError:
+                return 'INVALID_BANK'
 
     return 'INVALID_BANK'
+
 
 def isDate(string: str) -> bool:
     formats = ["%m/%Y", "%m-%d", "%m-%d-%Y", "%m-%d-%y", "%m/%d", "%m/%d/%Y", "%m/%d/%y"]
