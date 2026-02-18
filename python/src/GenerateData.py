@@ -2,7 +2,7 @@ import joblib, os, json, sys
 from pathlib import Path
 from enum import Enum
 from . import PullTransactions
-from .MiscMethods import getFileLocations, isDate
+from .MiscMethods import getFileLocations, validMonthYear
 from .NormalizeData import normalizePurchase
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -48,9 +48,9 @@ class Models(Enum):
 
 
 def Run(monthYear: str, tags: list) -> bool:
-    if not isDate(monthYear):
+    if not validMonthYear(monthYear):
         print("Bad date given - exiting")
-        exit(3)
+        return False
 
     print(f'Running Generation for {monthYear}') 
 
