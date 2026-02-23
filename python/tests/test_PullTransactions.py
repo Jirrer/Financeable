@@ -2,7 +2,6 @@ import pytest
 
 from python.src.PullTransactions import *
 
-
 def test_run():
     pass
 
