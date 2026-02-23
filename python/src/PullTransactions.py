@@ -13,6 +13,7 @@ if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
     sys.path.insert(0, str(VENV_SITE_PACKAGES))
 
 class SupportedBanks(Enum):
+    TESTING = 'testing'
     Fifth_Third = 'fifth_third'
     American_Express = 'american_express'
  
@@ -28,10 +29,31 @@ class Transaction:
         return f"({self.group}) value: {self.value} | category: {self.category} | Date: {self.date} | Info: {self.info}"
 
 def run(bankType, fileName: str):
-    match (bankType) :
+    match (bankType):
+        case SupportedBanks.TESTING.value: return testing(fileName) 
         case SupportedBanks.Fifth_Third.value: return fifthThird(fileName)
         case SupportedBanks.American_Express.value: return americanExpress(fileName)
         case _: print(f"Could not find bank - '{bankType}'"); return []
+
+def testing(fileName):
+    output, format = [], ("date", "description", "amount")
+
+    with open(fileName, 'r', newline='') as file:
+        reader = csv.reader(file)
+
+        next(reader) 
+
+        dateIndex, infoIndex, valueIndex = None, None, None
+
+        for index in range(len(format)):
+            if format[index] == 'date': dateIndex = index
+            elif format[index] == 'description': infoIndex = index
+            elif format[index] == 'amount': valueIndex = index
+
+        for row in reader:
+            output.append(Transaction(float(row[valueIndex]), row[dateIndex], row[infoIndex]))
+    
+    return output
 
 def fifthThird(fileName):
     output, format = [], ("date", "info", "check", "value")

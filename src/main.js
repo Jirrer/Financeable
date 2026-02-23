@@ -285,7 +285,8 @@ const banksData = [
   { id: "temp_1", name: "Northline Credit Union", favorite: false },
   { id: "american_express", name: "American Express", favorite: true },
   { id: "temp_2", name: "Harbor Savings", favorite: false },
-  { id: "temp_3", name: "Pioneer Bank", favorite: false }
+  { id: "temp_3", name: "Pioneer Bank", favorite: false },
+  { id: "testing", name: "Testing Bank", favorite: true }
 ];
 
 function initLogPage() {

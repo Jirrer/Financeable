@@ -16,21 +16,39 @@ Cross platform desktop application for simplifying finiancal tracking by letter 
 ### Log Data
 
 # Middleware
-## python_logic
-### engine\.py
-### loader\.py
-### registry\.py
-### router\.py
+The Python middleware (located in /Python/middleware\.py) works as a bridge between the Rust code and the Python scripts. Its process gets loaded once when the app is launched, and continues running throughout the life of the application. While middleware\.py can be ran manually for testing purposes, it is meant to send and receive information between lib\.rs.
 
 # Backend
 ## Python
 ### MiscMethdos\.py
+
+
 ### GenerateData\.py
+This file handles the bulk of the data creation within the program. It can be run in manual mode by calling it as a script or auto from lib\.rs. The file uses pre-submitted .CSV files in /ReportData/ and a provided date. There a few different tags that are available with this script:
+* -delete: deletes the .CSV bank files after the report has been generated
+* -push: saves the calculated data
+* -print: prints the transaction information to the console
+
+The classifier models are contained inside a class that is declared during compile time, which ensures that - once loaded at the start - the caclulation times are minimal. 
+
 ### PullTransactions\.py
+Is responsable for pulling and normalizing transaction data from the raw CSVs. Bank files are stored in /ReportData/ and are names 'bankname#timestamp'. PullTransactions recieves the file name as well as the bank type. Based on this type, it will call the corrisponding method. Each supported bank requires a funciton to ensure data is properly normalized before returning. All transactions are stored in a 'Transaction' class. 
+
 ### CreateTrainingData\.py
+Holds various methods for creating the data necessary for training the classifier models
+
 ### TestModels\.py
+Used to visualize how the classifiers are handling transactions
+
 ### TrainData\.py
+Calculates and saves classifier models used the label transactions and their respective sub types. Pulls training data from .CSV files inside /TrainingData/ and saves to the respective .joblib files in /classifiers/. 
+
+### NormalizeData\.py
+Strips the raw transactions' descriptions from unnecessary information such as dates, locations, special characters, etc. 
+
 ### Pytest
+Test environment for the Python scripts. 
+
 ### Python Requirements
  * annotated-types\==0.7.0
  * anyio\==4.9.0
@@ -129,12 +147,19 @@ Cross platform desktop application for simplifying finiancal tracking by letter 
  * urllib3\==2.6.2
  * vermin\==1.7.0
  * Werkzeug\==3.1.4
+
 ## ML Models
-### IncomeClassifier\.joblib
-### PurchaseClassifier\.joblib
-### TransactionClassifier\.joblib
-### TransferClassifier\.joblib
+The machine learning models are text classification models training using the sklearn PyPi package. These models are trained and used completely locally in memory. Each model is trained the same way (with different data), but are used independent of each other. 
+* TransactionClassifier\.joblib - Splits base transactions into one of the three transaction types
+* IncomeClassifier\.joblib - Splits by income type
+* PurchaseClassifier\.joblib - categorizes purchases
+* TransferClassifier\.joblib - determines if transfer is internal or external. internal transfers are ignored by month total calculations
+
 ## Training Data
+Dummy data for showcasing the application
+
 ## Data
-### Months\.json
-### UserData\.json
+Where user information and reports are stored in .json format.
+
+* Months\.json - The month totals and categories
+* UserData\.json - Global data regarding the user
