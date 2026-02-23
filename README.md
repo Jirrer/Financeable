@@ -1,8 +1,11 @@
 # Finianceable
 ##### Quick Navigation Links
-[Rust App](#rust-application) | [Frontend](#rust-application) | [Middleware](#middleware) | [backend - Python](#python) | [Backend - ML Models](#ml-models) | [Backend - Training Data](#traindatapy) | [Backend - Data](#data)
+[Installation](#installation) | [Rust App](#rust-application) | [Frontend](#rust-application) | [Middleware](#middleware) | [backend - Python](#python) | [Backend - ML Models](#ml-models) | [Backend - Training Data](#traindatapy) | [Backend - Data](#data)
 
 Cross platform desktop application for simplifying finiancal tracking by letter users submit CSV reports from various supported banks processing their data. This data is stored away and can be accessed from the GUI. A key property of this application is the built in categorization of purchases that is done locally on the backend. 
+
+# Installation
+
 
 # Rust Application
 ## lib\.rs

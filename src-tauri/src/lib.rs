@@ -1,5 +1,5 @@
 use std::env;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use once_cell::sync::OnceCell;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
@@ -11,18 +11,43 @@ use serde::{Deserialize, Serialize};
 
 static PY_ENGINE: OnceCell<Py<PyAny>> = OnceCell::new();
 
+fn workspace_root() -> PathBuf {
+    let cwd = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+
+    if cwd.join("python").exists() {
+        return cwd;
+    }
+
+    if cwd
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| name.eq_ignore_ascii_case("src-tauri"))
+        .unwrap_or(false)
+    {
+        if let Some(parent) = cwd.parent() {
+            return parent.to_path_buf();
+        }
+    }
+
+    cwd
+}
+
 fn python_paths() -> (String, String) {
-    // Use absolute paths to the python directory
-    let python_root = "C:\\Projects\\financeable\\python".to_string();
-    let middleware = "C:\\Projects\\financeable\\python\\middleware".to_string();
+    let root = workspace_root();
+    let python_root = root.join("python");
+    let middleware_dir = python_root.clone();
     
-    (middleware, python_root)
+    (
+        middleware_dir.to_string_lossy().to_string(),
+        python_root.to_string_lossy().to_string(),
+    )
 }
 
 fn init_python_engine() -> PyResult<Py<PyAny>> {
     // Force PyO3 to use the venv Python (allow override via env)
+    let default_python = workspace_root().join("env").join("Scripts").join("python.exe");
     let py_path = env::var("PYTHON_SYS_EXECUTABLE")
-        .unwrap_or_else(|_| "C:\\Projects\\financeable\\env\\Scripts\\python.exe".to_string());
+        .unwrap_or_else(|_| default_python.to_string_lossy().to_string());
     env::set_var("PYTHON_SYS_EXECUTABLE", &py_path);
 
     let venv_root = Path::new(&py_path)
@@ -53,7 +78,10 @@ fn init_python_engine() -> PyResult<Py<PyAny>> {
 
         // Add your python folder and src
         let (middleware, python_root) = python_paths();
-        let python_src = format!("{}\\src", python_root);
+        let python_src = Path::new(&python_root)
+            .join("src")
+            .to_string_lossy()
+            .to_string();
         path_obj.call_method1("insert", (0, venv_site_packages))?;
         path_obj.call_method1("insert", (0, python_src))?;
         path_obj.call_method1("insert", (0, python_root))?;
