@@ -23,6 +23,7 @@ class TransactionType(Enum):
     Income = 'income'
     Purchase = 'purchase'
     Transfer = 'transfer'
+    Undefined = 'Undefined'
 
 class PurchaseType(Enum):
     Misc = 'misc'
@@ -111,8 +112,11 @@ def categorizeTransactions(transactions: list) -> list:
                 t.info = normalizePurchase(t.info)
                 t.category = purchaseModel.predict([t.info])[0]
 
-            case TransactionType.Transfer.value: t.category = transferModel.predict([t.info])[0]
-            case _: continue
+            case TransactionType.Transfer.value: 
+                t.category = transferModel.predict([t.info])[0]
+
+            case _: 
+                t.category = TransactionType.Undefined.value
 
     del incomeModel; del purchaseModel; del transferModel
 
