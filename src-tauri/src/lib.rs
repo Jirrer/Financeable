@@ -118,6 +118,12 @@ struct ReportData {
 }
 
 #[derive(Serialize, Deserialize)]
+struct SubmitReportResponse {
+    success: bool,
+    output: String,
+}
+
+#[derive(Serialize, Deserialize)]
 #[serde(untagged)]
 enum DateFilter {
     Year { year: i32 },
@@ -214,7 +220,7 @@ fn get_user_csv() -> Result<Vec<String>, String> {
 }
 
 #[tauri::command]
-fn submit_report(month_year: String, tags: Option<Vec<String>>) -> Result<bool, String> {
+fn submit_report(month_year: String, tags: Option<Vec<String>>) -> Result<SubmitReportResponse, String> {
     println!("submit_report called: {} {:?}", month_year, tags);
 
     pyo3::Python::with_gil(|py| {
@@ -227,7 +233,15 @@ fn submit_report(month_year: String, tags: Option<Vec<String>>) -> Result<bool, 
             .getattr("sendReport")?
             .call1((month_year, tags))?;
 
-        let outcome: bool = result.extract()?;
+        let json = py.import("json")?;
+        let response_json: String = json
+            .getattr("dumps")?
+            .call1((result,))?
+            .extract()?;
+
+        let outcome: SubmitReportResponse = serde_json::from_str(&response_json)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+
         Ok(outcome)
     })
     .map_err(|e: PyErr| {

@@ -95,17 +95,6 @@ async function updateReportData() {
   }
 }
 
-async function goReportPage() {
-  try {
-    updateReportData();
-    
-    window.location.href = "reportPage.html";
-    
-  } catch (error) {
-    console.error('Error fetching bank data:', error);
-  }
-}
-
 function initReportPage() {
   const data = sessionStorage.getItem('reportData');
 
@@ -341,7 +330,7 @@ function searchBanks() {
   renderSearchBanks(filtered);
 }
 
-async function submitReport() {
+async function verifyReport() {
   const monthYearInput = document.getElementById("userMonthInput").value; 
 
   if (monthYearInput != "") {
@@ -350,16 +339,69 @@ async function submitReport() {
 
     monthYear = month + "/" + year
 
-    const tags = ["-push", "-delete"];
+    const tags = ["-delete", "-print"];
 
-    const ok = await invoke("submit_report", { monthYear , tags });
-    
-    console.log(ok);
+    const outcome = await invoke("submit_report", { monthYear , tags });
+    sessionStorage.setItem('reportSubmitOutcome', JSON.stringify(outcome));
 
-    goLogPage();
+    window.location.href = "reportOutcome.html";
 
   } else {
     console.error("Select a month & year")
   }
 
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.location.pathname.toLowerCase().endsWith('reportoutcome.html')) {
+    const storedOutcome = sessionStorage.getItem('reportSubmitOutcome');
+    if (!storedOutcome) return;
+
+    const outcome = JSON.parse(storedOutcome);
+
+    const statusEl = document.getElementById('reportOutcomeStatus');
+    const outcomeData = document.getElementById('reportOutcomeData');
+
+    if (!statusEl || !outcomeData) return;
+
+    if (typeof outcome === 'boolean') {
+      statusEl.textContent = 'Generate Report Date: unavailable';
+      outcomeData.innerHTML = '';
+      return;
+    }
+
+    const escapeHtml = (value) => String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+    const outputLines = String(outcome.output || '')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .filter(line => !/^(Finished Report|Deleted:|Pushed:)/.test(line));
+
+    const reportDateLine = outputLines.find(line => line.startsWith('Running Generation for '));
+    const reportDate = reportDateLine ? reportDateLine.replace('Running Generation for ', '') : null;
+    statusEl.textContent = reportDate ? `Generate Report Date: ${reportDate}` : 'Generate Report Date: unavailable';
+
+    const rows = outputLines
+      .filter(line => line !== reportDateLine)
+      .map(line => `
+        <div class="reportOutcomeRow">
+          ${escapeHtml(line)}
+        </div>
+      `)
+      .join('');
+
+    outcomeData.innerHTML = `
+      <div class="reportOutcomeContainer">
+        <div class="reportOutcomeRows">
+          ${rows || '<div class="reportOutcomeRow">No report output was returned.</div>'}
+        </div>
+      </div>
+    `;
+  }
+});

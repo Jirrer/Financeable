@@ -1,6 +1,7 @@
-import json, sys, os, shutil
+import json, sys, os, shutil, io
 from datetime import datetime 
 from pathlib import Path
+from contextlib import redirect_stdout
 
 # To-Do: erorr handle when json data is not formated (breaks frontend)
 
@@ -18,10 +19,21 @@ from src import MiscMethods # type:ignore
 
 DATA_DIR = BASE_DIR / "data"
 
-def sendReport(monthYear: str, tags: list[str]) -> bool:
+def sendReport(monthYear: str, tags: list[str]) -> dict:
     if not MiscMethods.isDate(monthYear):
-        return False
-    return GenerateData.Run(monthYear, tags)
+        return {
+            "success": False,
+            "output": "Bad date given - exiting"
+        }
+
+    stdout_capture = io.StringIO()
+    with redirect_stdout(stdout_capture):
+        success = GenerateData.Run(monthYear, tags)
+
+    return {
+        "success": success,
+        "output": stdout_capture.getvalue().strip()
+    }
 
 ### Accepted Types ###
 # year = YYYY
