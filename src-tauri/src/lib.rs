@@ -273,6 +273,25 @@ fn download_bank_file(bank_id: String, file_path: String) -> Result<String, Stri
     })
 }
 
+#[tauri::command]
+fn push_edited_report(month_year: String, report: serde_json::Value) -> Result<bool, String> {
+    pyo3::Python::with_gil(|py| {
+        let engine = get_engine()?;
+        let logic = engine.as_ref(py);
+
+        let report_json = serde_json::to_string(&report)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+
+        let result = logic
+            .getattr("pushEditedReport")?
+            .call1((month_year, report_json))?;
+
+        let success: bool = result.extract()?;
+        Ok(success)
+    })
+    .map_err(|e: PyErr| e.to_string())
+}
+
 // =========================
 // App Entry Point
 // =========================
@@ -287,6 +306,7 @@ pub fn run() {
             get_user_csv,
             submit_report,
             download_bank_file,
+            push_edited_report,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
