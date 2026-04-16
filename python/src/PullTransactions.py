@@ -29,69 +29,46 @@ class Transaction:
         return f"({self.group}) value: {self.value} | category: {self.category} | Date: {self.date} | Info: {self.info}"
 
 def run(bankType, fileName: str):
+    flipValues = False
+
     match (bankType):
-        case SupportedBanks.TESTING.value: return testing(fileName) 
-        case SupportedBanks.Fifth_Third.value: return fifthThird(fileName)
-        case SupportedBanks.American_Express.value: return americanExpress(fileName)
+        case SupportedBanks.Fifth_Third.value: flipValues = False; 
+        case SupportedBanks.American_Express.value: flipValues = True
         case _: print(f"Could not find bank - '{bankType}'"); return []
 
-def testing(fileName):
-    output, format = [], ("date", "description", "amount")
 
-    with open(fileName, 'r', newline='') as file:
-        reader = csv.reader(file)
+    return getValues(fileName, flipValues)
 
-        next(reader) 
+def getValues(fileName: str, flipValues: bool) -> list:
+    dateExamples = {'date'}
+    descriptionExamples = {'description'}
+    amountExamples = {'amount'}
 
-        dateIndex, infoIndex, valueIndex = None, None, None
+    dateIndex = -1
+    descriptionIndex = -1
+    amountIndex = -1
 
-        for index in range(len(format)):
-            if format[index] == 'date': dateIndex = index
-            elif format[index] == 'description': infoIndex = index
-            elif format[index] == 'amount': valueIndex = index
-
-        for row in reader:
-            output.append(Transaction(float(row[valueIndex]), row[dateIndex], row[infoIndex]))
+    file = open(fileName, 'r')
     
-    return output
+    reader = csv.reader(file)
 
-def fifthThird(fileName):
-    output, format = [], ("date", "info", "check", "value")
+    firstRow = next(reader)
 
-    with open(fileName, 'r', newline='') as file:
-        reader = csv.reader(file)
+    for index in range(len(firstRow)):
+        if firstRow[index].lower() in dateExamples: dateIndex = index
+        elif firstRow[index].lower() in descriptionExamples: descriptionIndex = index
+        elif firstRow[index].lower() in amountExamples: amountIndex = index 
 
-        next(reader) 
+    output = []
 
-        dateIndex, infoIndex, valueIndex = None, None, None
+    for row in reader:
+        if flipValues == False:
+            output.append(Transaction(float(row[amountIndex]), row[dateIndex], row[descriptionIndex]))   
 
-        for index in range(len(format)):
-            if format[index] == 'date': dateIndex = index
-            elif format[index] == 'info': infoIndex = index
-            elif format[index] == 'value': valueIndex = index
+        elif flipValues == True:
+            if float(row[amountIndex]) > 0.00: output.append(Transaction(float(f'-{row[amountIndex]}'), row[dateIndex], row[descriptionIndex]))
+            else: output.append(Transaction(float(row[amountIndex].replace('-','')), row[dateIndex], row[descriptionIndex]))
+        
+    file.close()
 
-        for row in reader:
-            output.append(Transaction(float(row[valueIndex]), row[dateIndex], row[infoIndex]))
-    
-    return output
-
-def americanExpress(fileName):
-    output, format = [], ('Date','Description','Amount')
-
-    with open(fileName, 'r', newline='') as file:
-        reader = csv.reader(file)
-
-        next(reader) 
-
-        dateIndex, infoIndex, valueIndex = None, None, None
-
-        for index in range(len(format)):
-            if format[index] == 'Date': dateIndex = index
-            elif format[index] == 'Description': infoIndex = index
-            elif format[index] == 'Amount': valueIndex = index
-
-        for row in reader:
-            if float(row[valueIndex]) > 0.00: output.append(Transaction(float(f'-{row[valueIndex]}'), row[dateIndex], row[infoIndex]))
-            else: output.append(Transaction(float(row[valueIndex]), row[dateIndex], row[infoIndex]))
-            
     return output
