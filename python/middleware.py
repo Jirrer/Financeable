@@ -35,6 +35,18 @@ def sendReport(monthYear: str, tags: list[str]) -> dict:
         "output": stdout_capture.getvalue().strip()
     }
 
+def pushEditedReport(monthYear: str, reportJson: str) -> bool:
+    if not MiscMethods.isDate(monthYear):
+        return False
+
+    try:
+        report = json.loads(reportJson)
+        GenerateData.pushData(report, monthYear)
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
 ### Accepted Types ###
 # year = YYYY
 # range = ["MM/YYYY", "MM/YYYY"]

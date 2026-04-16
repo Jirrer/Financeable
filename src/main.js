@@ -269,6 +269,10 @@ async function goLogPage() {
   window.location.href = "logPage.html";
 }
 
+function goReportPage() {
+  window.location.href = "reportPage.html";
+}
+
 const banksData = [
   { id: "fifth_third", name: "Fifth Third", favorite: true },
   { id: "temp_1", name: "Northline Credit Union", favorite: false },
@@ -352,6 +356,264 @@ async function verifyReport() {
 
 }
 
+function getOutcomeTransactionType(line) {
+  const match = String(line).match(/^\(([^)]+)\)/);
+  return match ? match[1].toLowerCase() : null;
+}
+
+function sortOutcomeLines(lines) {
+  const transactionPriority = {
+    income: 0,
+    transfer: 1,
+    purchase: 2,
+  };
+
+  return [...lines].sort((a, b) => {
+    const typeA = getOutcomeTransactionType(a);
+    const typeB = getOutcomeTransactionType(b);
+
+    const rankA = typeA in transactionPriority ? transactionPriority[typeA] : -1;
+    const rankB = typeB in transactionPriority ? transactionPriority[typeB] : -1;
+
+    if (rankA !== rankB) {
+      return rankA - rankB;
+    }
+
+    return a.localeCompare(b);
+  });
+}
+
+function persistOutcomeLines() {
+  const storedOutcome = sessionStorage.getItem('reportSubmitOutcome');
+  if (!storedOutcome) return;
+
+  try {
+    const outcome = JSON.parse(storedOutcome);
+    if (typeof outcome !== 'boolean') {
+      const lines = [];
+      if (window.reportOutcomeDateLine) lines.push(window.reportOutcomeDateLine);
+      lines.push(...(window.reportOutcomeLines || []));
+      if (Array.isArray(window.reportOutcomeHiddenLines)) {
+        lines.push(...window.reportOutcomeHiddenLines);
+      }
+      outcome.output = lines.join('\n');
+      sessionStorage.setItem('reportSubmitOutcome', JSON.stringify(outcome));
+    }
+  } catch (error) {
+    console.error('Could not persist edited outcome row:', error);
+  }
+}
+
+function renderOutcomeRows(lines) {
+  const outcomeData = document.getElementById('reportOutcomeData');
+  if (!outcomeData) return;
+
+  const sortedLines = sortOutcomeLines(lines);
+  window.reportOutcomeLines = sortedLines.slice();
+
+  const escapeHtml = (value) => String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  let previousType = null;
+  const rows = sortedLines
+    .map((line, index) => {
+      const currentType = getOutcomeTransactionType(line);
+      const showDivider = index > 0 && currentType !== previousType;
+      previousType = currentType;
+
+      const divider = showDivider
+        ? `<div class="reportOutcomeGroupDivider"></div>`
+        : '';
+
+      return `
+        ${divider}
+        <div class="reportOutcomeRow" id="reportOutcomeRow-${index}">
+          <div class="reportOutcomeText">${escapeHtml(line)}</div>
+          <input class="reportOutcomeInput" type="text" value="${escapeHtml(line)}" />
+          <div class="reportOutcomeActions">
+            <button class="reportOutcomeBtn reportOutcomeBtnEdit" onclick="editOutcomeRow(${index})">Edit</button>
+            <button class="reportOutcomeBtn reportOutcomeBtnSave" onclick="saveOutcomeRow(${index})">Save</button>
+            <button class="reportOutcomeBtn reportOutcomeBtnCancel" onclick="cancelOutcomeRow(${index})">Cancel</button>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  outcomeData.innerHTML = `
+    <div class="reportOutcomeContainer">
+      <div id="reportOutcomeTotals" class="reportOutcomeTotals"></div>
+      <div class="reportOutcomeRows">
+        ${rows || '<div class="reportOutcomeRow">No report output was returned.</div>'}
+      </div>
+    </div>
+  `;
+
+  renderEditedTotals();
+}
+
+window.editOutcomeRow = function(index) {
+  const row = document.getElementById(`reportOutcomeRow-${index}`);
+  if (!row) return;
+  row.classList.add('editing');
+
+  const input = row.querySelector('.reportOutcomeInput');
+  if (input) {
+    input.focus();
+    input.select();
+  }
+};
+
+window.cancelOutcomeRow = function(index) {
+  const row = document.getElementById(`reportOutcomeRow-${index}`);
+  if (!row) return;
+
+  const textEl = row.querySelector('.reportOutcomeText');
+  const input = row.querySelector('.reportOutcomeInput');
+  if (textEl && input) {
+    input.value = textEl.textContent || '';
+  }
+
+  row.classList.remove('editing');
+};
+
+window.saveOutcomeRow = function(index) {
+  const row = document.getElementById(`reportOutcomeRow-${index}`);
+  if (!row || !Array.isArray(window.reportOutcomeLines)) return;
+
+  const textEl = row.querySelector('.reportOutcomeText');
+  const input = row.querySelector('.reportOutcomeInput');
+  if (!textEl || !input) return;
+
+  const updatedLine = input.value.trim();
+  if (!updatedLine) return;
+
+  window.reportOutcomeLines[index] = updatedLine;
+  persistOutcomeLines();
+  renderOutcomeRows(window.reportOutcomeLines);
+};
+
+function buildReportFromEditedLines(lines) {
+  const report = {
+    "Profit/Loss": 0,
+    Income: { Total: 0 },
+    Purchase: { Total: 0 },
+    Transfer: { Total: 0 },
+  };
+
+  let parsedCount = 0;
+
+  const transactionRegex = /^\(([^)]+)\)\s+value:\s*([+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*\|\s*category:\s*([^|]+)\|/i;
+
+  const normalizeCategory = (rawCategory) => {
+    const text = String(rawCategory).trim().toLowerCase();
+
+    if (text.includes('external')) return 'external';
+    if (text.includes('internal')) return 'internal';
+
+    return text
+      .replace(/^np\.str_\(['"]?/, '')
+      .replace(/['"]?\)$/, '')
+      .trim();
+  };
+
+  for (const line of lines) {
+    const match = String(line).match(transactionRegex);
+    if (!match) continue;
+
+    const groupRaw = match[1].toLowerCase();
+    const value = Number(String(match[2]).replace(/,/g, ''));
+    const category = normalizeCategory(match[3]);
+
+    if (!Number.isFinite(value)) continue;
+
+    const groupMap = {
+      income: "Income",
+      purchase: "Purchase",
+      transfer: "Transfer",
+    };
+
+    const group = groupMap[groupRaw];
+    if (!group) continue;
+
+    parsedCount += 1;
+
+    report[group].Total += value;
+    report[group][category] = (report[group][category] || 0) + value;
+
+    if (groupRaw !== "transfer" || category === "external") {
+      report["Profit/Loss"] += value;
+    }
+  }
+
+  return { report, parsedCount };
+}
+
+function renderEditedTotals() {
+  const totalsEl = document.getElementById('reportOutcomeTotals');
+  if (!totalsEl) return;
+
+  if (!Array.isArray(window.reportOutcomeLines) || !window.reportOutcomeLines.length) {
+    totalsEl.innerHTML = '';
+    return;
+  }
+
+  const { report, parsedCount } = buildReportFromEditedLines(window.reportOutcomeLines);
+  if (!parsedCount) {
+    totalsEl.innerHTML = '<div class="reportOutcomeTotalsRow">No parsable transaction rows found.</div>';
+    return;
+  }
+
+  const money = (value) => Number(value).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  totalsEl.innerHTML = `
+    <div class="reportOutcomeTotalsRow"><strong>Profit/Loss:</strong> ${money(report["Profit/Loss"])}</div>
+    <div class="reportOutcomeTotalsRow"><strong>Income Total:</strong> ${money(report.Income.Total)}</div>
+    <div class="reportOutcomeTotalsRow"><strong>Purchase Total:</strong> ${money(report.Purchase.Total)}</div>
+    <div class="reportOutcomeTotalsRow"><strong>Transfer Total:</strong> ${money(report.Transfer.Total)}</div>
+  `;
+}
+
+window.submitEditedReport = async function() {
+  if (!Array.isArray(window.reportOutcomeLines) || !window.reportOutcomeLines.length) {
+    alert('No edited report rows were found.');
+    return;
+  }
+
+  const monthYear = window.reportMonthYear;
+  if (!monthYear) {
+    alert('Could not determine the report date to push.');
+    return;
+  }
+
+  const { report, parsedCount } = buildReportFromEditedLines(window.reportOutcomeLines);
+  if (!parsedCount) {
+    alert('No parsable transaction rows were found to push.');
+    return;
+  }
+
+  try {
+    const pushed = await invoke('push_edited_report', { monthYear, report });
+    if (pushed) {
+      alert('Edited report data pushed successfully.');
+      await updateReportData();
+      goReportPage();
+    } else {
+      alert('Push failed. Please verify report date and data.');
+    }
+  } catch (error) {
+    console.error('Error pushing edited report:', error);
+    alert('Error pushing edited report. See console for details.');
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   if (window.location.pathname.toLowerCase().endsWith('reportoutcome.html')) {
     const storedOutcome = sessionStorage.getItem('reportSubmitOutcome');
@@ -370,38 +632,24 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const escapeHtml = (value) => String(value)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-
-    const outputLines = String(outcome.output || '')
+    const allOutputLines = String(outcome.output || '')
       .split('\n')
       .map(line => line.trim())
-      .filter(line => line.length > 0)
-      .filter(line => !/^(Finished Report|Deleted:|Pushed:)/.test(line));
+      .filter(line => line.length > 0);
+
+    const hiddenLines = allOutputLines.filter(line => /^(Finished Report|Deleted:|Pushed:)/.test(line));
+    const outputLines = allOutputLines.filter(line => !/^(Finished Report|Deleted:|Pushed:)/.test(line));
 
     const reportDateLine = outputLines.find(line => line.startsWith('Running Generation for '));
     const reportDate = reportDateLine ? reportDateLine.replace('Running Generation for ', '') : null;
     statusEl.textContent = reportDate ? `Generate Report Date: ${reportDate}` : 'Generate Report Date: unavailable';
+    window.reportMonthYear = reportDate;
 
-    const rows = outputLines
+    const editableLines = outputLines
       .filter(line => line !== reportDateLine)
-      .map(line => `
-        <div class="reportOutcomeRow">
-          ${escapeHtml(line)}
-        </div>
-      `)
-      .join('');
-
-    outcomeData.innerHTML = `
-      <div class="reportOutcomeContainer">
-        <div class="reportOutcomeRows">
-          ${rows || '<div class="reportOutcomeRow">No report output was returned.</div>'}
-        </div>
-      </div>
-    `;
+      .filter(line => !line.startsWith('{'));
+    window.reportOutcomeDateLine = reportDateLine || '';
+    window.reportOutcomeHiddenLines = hiddenLines;
+    renderOutcomeRows(editableLines);
   }
 });
