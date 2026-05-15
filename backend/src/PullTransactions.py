@@ -15,7 +15,8 @@ if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
 class SupportedBanks(Enum):
     TESTING = 'testing'
     Fifth_Third = 'fifth_third'
-    American_Express = 'american_express'
+    American_Express_Credit = 'american_express_credit'
+    American_Express_Savings = 'american_express_savings'
  
 class Transaction:
     def __init__(self, transactionValue: float, tranasctionDate, transactionInfo):
@@ -33,9 +34,9 @@ def run(bankType, fileName: str):
 
     match (bankType):
         case SupportedBanks.Fifth_Third.value: flipValues = False; 
-        case SupportedBanks.American_Express.value: flipValues = True
+        case SupportedBanks.American_Express_Credit.value: flipValues = True
+        case SupportedBanks.American_Express_Savings.value: flipValues = False
         case _: print(f"Could not find bank - '{bankType}'"); return []
-
 
     return getValues(fileName, flipValues)
 

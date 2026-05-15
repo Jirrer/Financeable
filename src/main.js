@@ -276,10 +276,11 @@ function goReportPage() {
 const banksData = [
   { id: "fifth_third", name: "Fifth Third", favorite: true },
   { id: "temp_1", name: "Northline Credit Union", favorite: false },
-  { id: "american_express", name: "American Express", favorite: true },
+  { id: "american_express_credit", name: "American Express Credit", favorite: true },
+  { id: "american_express_savings", name: "American Express Savings", favorite: true },
   { id: "temp_2", name: "Harbor Savings", favorite: false },
   { id: "temp_3", name: "Pioneer Bank", favorite: false },
-  { id: "testing", name: "Testing Bank", favorite: true }
+  { id: "testing", name: "Testing Bank", favorite: false }
 ];
 
 function initLogPage() {
@@ -466,7 +467,17 @@ window.editOutcomeRow = function(index) {
     input.focus();
     input.select();
   }
+
+
 };
+
+function addToNewData(oldValue, newValue) {
+  if (!Array.isArray(window.newDataChanges)) {
+    window.newDataChanges = [];
+  }
+
+  window.newDataChanges.push([oldValue, newValue]);
+}
 
 window.cancelOutcomeRow = function(index) {
   const row = document.getElementById(`reportOutcomeRow-${index}`);
@@ -491,6 +502,8 @@ window.saveOutcomeRow = function(index) {
 
   const updatedLine = input.value.trim();
   if (!updatedLine) return;
+
+  addToNewData((textEl.textContent || ''), updatedLine);
 
   window.reportOutcomeLines[index] = updatedLine;
   persistOutcomeLines();
@@ -587,6 +600,10 @@ window.submitEditedReport = async function() {
     return;
   }
 
+  if (Array.isArray(window.newDataChanges)) {
+    console.log(window.newDataChanges);
+  }
+
   const monthYear = window.reportMonthYear;
   if (!monthYear) {
     alert('Could not determine the report date to push.');
@@ -600,9 +617,14 @@ window.submitEditedReport = async function() {
   }
 
   try {
-    const pushed = await invoke('push_edited_report', { monthYear, report });
+    const pushed = await invoke('push_edited_report', {
+      monthYear,
+      report,
+      edits: window.newDataChanges || []
+    });
     if (pushed) {
       alert('Edited report data pushed successfully.');
+      window.newDataChanges = [];
       await updateReportData();
       goReportPage();
     } else {

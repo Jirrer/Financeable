@@ -16,6 +16,7 @@ if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
 
 from src import GenerateData # type: ignore
 from src import MiscMethods # type:ignore
+from src import TrainData # type:ignore
 
 DATA_DIR = BASE_DIR / "data"
 
@@ -35,13 +36,16 @@ def sendReport(monthYear: str, tags: list[str]) -> dict:
         "output": stdout_capture.getvalue().strip()
     }
 
-def pushEditedReport(monthYear: str, reportJson: str) -> bool:
+def pushEditedReport(monthYear: str, reportJson: str, editsJson: str) -> bool:
     if not MiscMethods.isDate(monthYear):
         return False
 
     try:
         report = json.loads(reportJson)
         GenerateData.pushData(report, monthYear)
+        
+        edits = json.loads(editsJson)
+        TrainData.updateModel(edits)
         return True
     except Exception as e:
         print(e)

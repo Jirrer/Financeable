@@ -47,7 +47,6 @@ class Models(Enum):
     Purchase = joblib.load(str(CLASSIFIERS_DIR / "PurchaseClassifier.joblib"))
     Transfer = joblib.load(str(CLASSIFIERS_DIR / "TransferClassifier.joblib"))
 
-
 def Run(monthYear: str, tags: list) -> bool:
     if not validMonthYear(monthYear):
         print("Bad date given - exiting")
@@ -86,7 +85,6 @@ def getTransactions():
     groupedTransactions = groupTransactions(rawTransactions)
 
     return categorizeTransactions(groupedTransactions)  
-
 
 def groupTransactions(transactions: list) -> list:
     transactionModel = Models.Transaction.value
@@ -184,7 +182,6 @@ def printOutput(report, transactions):
     
     for tran in transactions:
         print(tran)
-    
 
 if __name__ == "__main__":
     if len(sys.argv) <= 1:
