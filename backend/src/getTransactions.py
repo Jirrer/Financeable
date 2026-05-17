@@ -14,10 +14,7 @@ VENV_SITE_PACKAGES = BASE_DIR / "env" / "Lib" / "site-packages"
 if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
     sys.path.insert(0, str(VENV_SITE_PACKAGES))
 
-CLASSIFIERS_DIR = BASE_DIR / "classifiers"
-DATA_DIR = BASE_DIR / "data"
-REPORT_DIR = (BASE_DIR / "ReportData").resolve()
-REPORT_DIR.mkdir(parents=True, exist_ok=True)
+CLASSIFIERS_DIR = BASE_DIR / "models\\classifiers"
 
 class TransactionType(Enum):
     Income = 'income'
@@ -38,9 +35,6 @@ class TransferType(Enum):
     Internal = 'internal'
     External = 'external'
 
-# Keep classifiers as a Class so it can be vectorized as soon as the
-# script runs (manually run) or when the module is loaded (when being
-# used by the rust frontend)
 class Models(Enum):
     Transaction = joblib.load(str(CLASSIFIERS_DIR / "TransactionClassifier.joblib"))
     Income = joblib.load(str(CLASSIFIERS_DIR / "IncomeClassifier.joblib"))
