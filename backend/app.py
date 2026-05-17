@@ -10,7 +10,21 @@ def getTransations():
     
     report = request.files['report']
 
-    transactions = src.getTransactions.run('fifth_third', report, src.getTransactions.ReturnType.JSON)
+    if request.form['flipValues'].lower() == 'true':
+        flipValues = True
+
+    elif request.form['flipValues'].lower() == 'false':
+        flipValues = False
+
+    else:
+        return jsonify({'Status': 'Fail', 'Message': "Invalid value for 'flipValues'"}), 404
+
+    match request.form['returnType'].upper():
+        case 'JSON': returnType = src.getTransactions.ReturnType.JSON
+        case '': return jsonify({'Status': 'Fail', 'Message': "Null Return Type"}), 404
+        case _: return jsonify({'Status': 'Fail', 'Message': "Invalid Return Type"}), 403
+        
+    transactions = src.getTransactions.run(report, flipValues, returnType)
 
     return jsonify({"Status": "Success", "transactions": transactions}), 200
 
