@@ -47,44 +47,16 @@ class Models(Enum):
     Purchase = joblib.load(str(CLASSIFIERS_DIR / "PurchaseClassifier.joblib"))
     Transfer = joblib.load(str(CLASSIFIERS_DIR / "TransferClassifier.joblib"))
 
-def Run(monthYear: str, tags: list) -> bool:
+def Run(monthYear: dict, transactions) -> bool:
+
     if not validMonthYear(monthYear):
-        print("Bad date given - exiting")
         return False
 
-    print(f'Running Generation for {monthYear}') 
-
-    transactions = getTransactions()
 
     report = prepareReport(transactions)
 
-    print("Finished Report")
+    return report
 
-    deleted = False
-    pushed = False
-
-    for t in tags:
-        match t.lower():
-            case '-delete': clearDataFiles(); deleted = True
-            case '-push': pushData(report, monthYear); pushed = True
-            case '-print': printOutput(report, transactions)
-            case _: continue
-    
-    print(f"Deleted: {deleted}") 
-    print(f"Pushed: {pushed}") 
-
-    return True
-
-def getTransactions():
-    csvFileLocations = getFileLocations() # To-Do: refactor ('getfilelocations' is too broad)
-
-    transactionsByBank = [PullTransactions.run(c[0], c[1]) for c in csvFileLocations] 
-
-    rawTransactions = [t for bank in transactionsByBank for t in bank]
-
-    groupedTransactions = groupTransactions(rawTransactions)
-
-    return categorizeTransactions(groupedTransactions)  
 
 def groupTransactions(transactions: list) -> list:
     transactionModel = Models.Transaction.value
@@ -182,10 +154,3 @@ def printOutput(report, transactions):
     
     for tran in transactions:
         print(tran)
-
-if __name__ == "__main__":
-    if len(sys.argv) <= 1:
-        print("Month was not included")
-        sys.exit(3)
-
-    Run(sys.argv[1], sys.argv[2:])
