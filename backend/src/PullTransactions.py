@@ -1,6 +1,7 @@
 from enum import Enum
 import csv
 import sys
+import io
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -29,7 +30,7 @@ class Transaction:
     def __repr__(self):
         return f"({self.group}) value: {self.value} | category: {self.category} | Date: {self.date} | Info: {self.info}"
 
-def run(bankType, fileName: str):
+def run(bankType, file):
     flipValues = False
 
     match (bankType):
@@ -38,9 +39,9 @@ def run(bankType, fileName: str):
         case SupportedBanks.American_Express_Savings.value: flipValues = False
         case _: print(f"Could not find bank - '{bankType}'"); return []
 
-    return getValues(fileName, flipValues)
+    return getValues(file, flipValues)
 
-def getValues(fileName: str, flipValues: bool) -> list:
+def getValues(file, flipValues: bool) -> list:
     dateExamples = {'date'}
     descriptionExamples = {'description'}
     amountExamples = {'amount'}
@@ -49,10 +50,10 @@ def getValues(fileName: str, flipValues: bool) -> list:
     descriptionIndex = -1
     amountIndex = -1
 
-    file = open(fileName, 'r')
+    stream = io.StringIO(file.stream.read().decode("utf-8"), newline="")
     
-    reader = csv.reader(file)
-
+    reader = csv.reader(stream)
+    
     firstRow = next(reader)
 
     for index in range(len(firstRow)):
@@ -64,11 +65,21 @@ def getValues(fileName: str, flipValues: bool) -> list:
 
     for row in reader:
         if flipValues == False:
-            output.append(Transaction(float(row[amountIndex]), row[dateIndex], row[descriptionIndex]))   
+            txn_value = float(row[amountIndex])
+        else:
+            if float(row[amountIndex]) > 0.00:
+                txn_value = -float(row[amountIndex])
+            else:
+                txn_value = float(row[amountIndex].replace('-',''))
 
-        elif flipValues == True:
-            if float(row[amountIndex]) > 0.00: output.append(Transaction(float(f'-{row[amountIndex]}'), row[dateIndex], row[descriptionIndex]))
-            else: output.append(Transaction(float(row[amountIndex].replace('-','')), row[dateIndex], row[descriptionIndex]))
+        txn = {
+            "value": txn_value,
+            "date": row[dateIndex],
+            "info": row[descriptionIndex],
+            "group": None,
+            "category": None,
+        }
+        output.append(txn)
         
     file.close()
 
