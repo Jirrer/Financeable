@@ -48,12 +48,14 @@ class Models(Enum):
     Transfer = joblib.load(str(CLASSIFIERS_DIR / "TransferClassifier.joblib"))
 
 def Run(monthYear: dict, transactions) -> bool:
-
     if not validMonthYear(monthYear):
         return False
+    
+    groupTran = groupTransactions(transactions)
 
+    catTran = categorizeTransactions(transactions)
 
-    report = prepareReport(transactions)
+    report = prepareReport(catTran)
 
     return report
 

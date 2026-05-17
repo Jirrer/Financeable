@@ -65,21 +65,11 @@ def getValues(file, flipValues: bool) -> list:
 
     for row in reader:
         if flipValues == False:
-            txn_value = float(row[amountIndex])
-        else:
-            if float(row[amountIndex]) > 0.00:
-                txn_value = -float(row[amountIndex])
-            else:
-                txn_value = float(row[amountIndex].replace('-',''))
+            output.append(Transaction(float(row[amountIndex]), row[dateIndex], row[descriptionIndex]))   
 
-        txn = {
-            "value": txn_value,
-            "date": row[dateIndex],
-            "info": row[descriptionIndex],
-            "group": None,
-            "category": None,
-        }
-        output.append(txn)
+        elif flipValues == True:
+            if float(row[amountIndex]) > 0.00: output.append(Transaction(float(f'-{row[amountIndex]}'), row[dateIndex], row[descriptionIndex]))
+            else: output.append(Transaction(float(row[amountIndex].replace('-','')), row[dateIndex], row[descriptionIndex]))
         
     file.close()
 

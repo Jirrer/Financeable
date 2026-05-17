@@ -1,6 +1,6 @@
 import os
 from flask import Flask, jsonify, request
-import src.GenerateData, src.PullTransactions
+import src.getTransactions
 
 app = Flask(__name__)
 
@@ -10,14 +10,9 @@ def getTransations():
     
     report = request.files['report']
 
-    transactions = src.PullTransactions.run('fifth_third', report)
+    transactions = src.getTransactions.run('fifth_third', report, src.getTransactions.ReturnType.JSON)
 
-    categorizedTransactions = src.GenerateData.Run('01/2026', transactions)
-
-
-    return jsonify({"Status": "Success", "transactions": categorizedTransactions}), 200
-
-
+    return jsonify({"Status": "Success", "transactions": transactions}), 200
 
 
 if __name__ == "__main__":
