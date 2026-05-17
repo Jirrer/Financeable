@@ -1,11 +1,9 @@
 from enum import Enum
-import csv
-import sys
-import io
 from pathlib import Path
-import joblib, os, json, sys
 from pathlib import Path
 import src.NormalizeData
+from werkzeug.datastructures import FileStorage
+import csv, sys, io, joblib, sys
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 PYTHON_DIR = BASE_DIR / "python"
@@ -48,12 +46,6 @@ class Models(Enum):
     Income = joblib.load(str(CLASSIFIERS_DIR / "IncomeClassifier.joblib"))
     Purchase = joblib.load(str(CLASSIFIERS_DIR / "PurchaseClassifier.joblib"))
     Transfer = joblib.load(str(CLASSIFIERS_DIR / "TransferClassifier.joblib"))
-
-class SupportedBanks(Enum):
-    TESTING = 'testing'
-    Fifth_Third = 'fifth_third'
-    American_Express_Credit = 'american_express_credit'
-    American_Express_Savings = 'american_express_savings'
  
 class Transaction:
     def __init__(self, transactionValue: float, tranasctionDate, transactionInfo):
@@ -69,23 +61,12 @@ class Transaction:
 class ReturnType(Enum):
     JSON = 1,
 
-def run(bankType, csvFile, returnType) -> bool:
-    transactions = pullTransactions(bankType, csvFile)
+def run(csvFile: FileStorage, flipValues: bool, returnType: ReturnType) -> bool:
+    transactions = pullTransactions(csvFile, flipValues)
 
     return returnTransactions(transactions, returnType)
 
-def pullTransactions(bankType:str, csvFile):
-    flipValues = False
-
-    match (bankType):
-        case SupportedBanks.Fifth_Third.value: flipValues = False; 
-        case SupportedBanks.American_Express_Credit.value: flipValues = True
-        case SupportedBanks.American_Express_Savings.value: flipValues = False
-        case _: print(f"Could not find bank - '{bankType}'"); return []
-
-    return getValues(csvFile, flipValues)
-
-def getValues(file, flipValues: bool):
+def pullTransactions(file, flipValues: bool):
     dateExamples = {'date'}
     descriptionExamples = {'description'}
     amountExamples = {'amount'}
