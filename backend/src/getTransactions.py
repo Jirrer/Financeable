@@ -46,8 +46,8 @@ class Transaction:
         self.value = transactionValue
         self.date = tranasctionDate
         self.info = transactionInfo
-        self.group = None
-        self.category = None
+        self.group = 'Ungrouped'
+        self.category = 'Uncategorized'
 
     def __repr__(self):
         return f"({self.group}) value: {self.value} | category: {self.category} | Date: {self.date} | Info: {self.info}"
@@ -58,9 +58,13 @@ class ReturnType(Enum):
 def run(csvFile: FileStorage, flipValues: bool, returnType: ReturnType) -> bool:
     transactions = pullTransactions(csvFile, flipValues)
 
+    transactions = groupTransactions(transactions)
+
+    transactions = categorizeTransactions(transactions)
+
     return returnTransactions(transactions, returnType)
 
-def pullTransactions(file, flipValues: bool):
+def pullTransactions(file, flipValues: bool) -> list[Transaction]:
     dateExamples = {'date'}
     descriptionExamples = {'description'}
     amountExamples = {'amount'}
@@ -83,6 +87,9 @@ def pullTransactions(file, flipValues: bool):
     transactions = []
 
     for row in reader:
+        if not src.NormalizeData.isValidDate(row[dateIndex]):
+            raise ValueError
+
         if flipValues == False:
             transactions.append(Transaction(float(row[amountIndex]), row[dateIndex], row[descriptionIndex]))   
 
@@ -92,9 +99,9 @@ def pullTransactions(file, flipValues: bool):
         
     file.close()
 
-    return groupTransactions(transactions)
+    return transactions
 
-def groupTransactions(transactions: list):
+def groupTransactions(transactions: list) -> list[Transaction]:
     transactionModel = Models.Transaction.value
 
     for t in transactions:
@@ -102,9 +109,9 @@ def groupTransactions(transactions: list):
 
     del transactionModel
 
-    return categorizeTransactions(transactions)
+    return transactions
 
-def categorizeTransactions(transactions: list):
+def categorizeTransactions(transactions: list) -> list[Transaction]:
     incomeModel = Models.Income.value
     purchaseModel = Models.Purchase.value
     transferModel = Models.Transfer.value
@@ -133,7 +140,7 @@ def returnTransactions(transactions: list, returnType: ReturnType):
         case returnType.JSON: return returnJson(transactions)
         case _: raise ValueError
 
-def returnJson(transactions: list[Transaction]):
+def returnJson(transactions: list[Transaction]) -> dict:
     jsonOutput = {}
 
     for index in range(len(transactions)):
