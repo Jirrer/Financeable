@@ -2,7 +2,8 @@ import re
 from datetime import datetime
 
 def isValidDate(possibleDate: str) -> bool:
-    formats = ["%m/%d/%y", "%m-%d-%y", "%y/%m/%d", "%y-%m-%d", "%Y-%m-%d", "%Y/%m/%d"]
+    formats = ["%m/%d/%y", "%m-%d-%y", "%m/%d/%Y", "%m-%d-%Y", "%y/%m/%d", "%y-%m-%d", "%Y-%m-%d", "%Y/%m/%d", "%d/%m/%Y"]
+    
     for fmt in formats:
         try:
             datetime.strptime(possibleDate, fmt)

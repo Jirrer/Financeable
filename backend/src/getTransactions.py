@@ -88,7 +88,7 @@ def pullTransactions(file, flipValues: bool) -> list[Transaction]:
 
     for row in reader:
         if not src.NormalizeData.isValidDate(row[dateIndex]):
-            raise ValueError
+            raise ValueError #To-Do: create custom exception and handle it
 
         if flipValues == False:
             transactions.append(Transaction(float(row[amountIndex]), row[dateIndex], row[descriptionIndex]))   
