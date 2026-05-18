@@ -1,4 +1,15 @@
 import re
+from datetime import datetime
+
+def isValidDate(possibleDate: str) -> bool:
+    formats = ["%m/%d/%y", "%m-%d-%y", "%y/%m/%d", "%y-%m-%d", "%Y-%m-%d", "%Y/%m/%d"]
+    for fmt in formats:
+        try:
+            datetime.strptime(possibleDate, fmt)
+            return True
+        except ValueError:
+            continue
+    return False
 
 US_STATES = {
     "al","ak","az","ar","ca","co","ct","de","fl","ga","hi","id","il","in","ia","ks",
