@@ -5,6 +5,4 @@
 test intro paragraph
 
 ## Diagram
-
-<img width="1208" height="782" alt="Financeable drawio" src="https://github.com/user-attachments/assets/cf83ab51-c5f0-4a18-8a53-ca26480d6760" />
-
+<img width="1208" height="782" alt="Financeable drawio" src="https://github.com/user-attachments/assets/ca45ceb1-0e28-4a97-abb6-a9dafd4fd5ed" />
