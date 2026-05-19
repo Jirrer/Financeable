@@ -1,4 +1,3 @@
-# Misc
 *.PDF
 .env
 *.csv
@@ -11,6 +10,8 @@ data.json
 /__pycache__
 !Data Flow.pdf
 !src-tauri/tauri.conf.json
+*.png
+/old-data
 
 
 # Logs
@@ -37,24 +38,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Added by cargo
-
-/target
-
-*.json
-*.PDF
-.env
-*.csv
-*.joblib
-data.json
-*.db
-/env
-/Finianceable/bin/Debug/net8.0-windows/env
-data/userInfo.json
-!Data Flow.pdf
-
-# Added by cargo
 
 /target
 Presentation Beta - John Irrer.pptx
