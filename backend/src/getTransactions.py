@@ -16,6 +16,8 @@ if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
 
 CLASSIFIERS_DIR = BASE_DIR / "models\\classifiers"
 
+# To-Do: change how models are loaded (so i can use pytest)
+
 class TransactionType(Enum):
     Income = 'income'
     Purchase = 'purchase'
