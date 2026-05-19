@@ -1,0 +1,43 @@
+CREATE TABLE IF NOT EXISTS "user" (
+	"id" INTEGER NOT NULL,
+	"username" TEXT NOT NULL,
+	"password" TEXT NOT NULL,
+	"email" TEXT,
+	PRIMARY KEY("id")
+);
+
+CREATE TABLE IF NOT EXISTS "purchase" (
+	"id" INTEGER NOT NULL,
+	"user_id" INTEGER NOT NULL,
+	"date" DATE NOT NULL,
+	"category" TEXT NOT NULL,
+	"value" REAL NOT NULL,
+	"info" TEXT,
+	PRIMARY KEY("id"),
+	FOREIGN KEY ("user_id") REFERENCES "user"("id")
+	ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS "income" (
+	"id" INTEGER NOT NULL,
+	"user_id" INTEGER NOT NULL,
+	"date" DATE NOT NULL,
+	"category" TEXT NOT NULL,
+	"value" REAL NOT NULL,
+	"info" TEXT,
+	PRIMARY KEY("id"),
+	FOREIGN KEY ("user_id") REFERENCES "user"("id")
+	ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS "transfer" (
+	"id" INTEGER NOT NULL,
+	"user_id" INTEGER NOT NULL,
+	"date" DATE NOT NULL,
+	"category" TEXT NOT NULL,
+	"value" REAL NOT NULL,
+	"info" TEXT,
+	PRIMARY KEY("id"),
+	FOREIGN KEY ("id") REFERENCES "user"("id")
+	ON UPDATE NO ACTION ON DELETE NO ACTION
+);
