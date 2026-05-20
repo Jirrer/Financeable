@@ -46,16 +46,29 @@ def getMonthReport(data: dict):
     except KeyError:
         returnType = ReturnType.JSON
 
-    returnJson(categories)
+    return returnJson(categories)
 
 def getDate(possibleDate: str):
     return possibleDate
 
 
-def returnJson(categories: dict):
+def returnJson(categories: dict) -> dict:
+    output = {}
+
+    count = 1
+
+    for category in categories.values():
+        for value in category:
+            output[count] = {
+                'test'
+            }
+
+            count += 1
 
 
-    print(categories)
+
+    print(output)
+    return output
 
 
 if __name__ == "__main__":
