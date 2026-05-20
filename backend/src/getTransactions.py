@@ -41,7 +41,7 @@ class Models(Enum):
     Transaction = joblib.load(str(CLASSIFIERS_DIR / "TransactionClassifier.joblib"))
     Income = joblib.load(str(CLASSIFIERS_DIR / "IncomeClassifier.joblib"))
     Purchase = joblib.load(str(CLASSIFIERS_DIR / "PurchaseClassifier.joblib"))
-    Transfer = joblib.load(str(CLASSIFIERS_DIR / "TransferClassifier.joblib"))
+    # Transfer = joblib.load(str(CLASSIFIERS_DIR / "TransferClassifier.joblib"))
  
 class Transaction:
     def __init__(self, transactionValue: float, tranasctionDate, transactionInfo):
@@ -57,16 +57,16 @@ class Transaction:
 class ReturnType(Enum):
     JSON = 1,
 
-def run(csvFile: FileStorage, flipValues: bool, returnType: ReturnType) -> bool:
-    transactions = pullTransactions(csvFile, flipValues)
+def run(csvFile: FileStorage, returnType: ReturnType, internalTransfers: set) -> bool:
+    transactions = pullTransactions(csvFile)
 
     transactions = groupTransactions(transactions)
 
-    transactions = categorizeTransactions(transactions)
+    transactions = categorizeTransactions(transactions, internalTransfers)
 
     return returnTransactions(transactions, returnType)
 
-def pullTransactions(file, flipValues: bool) -> list[Transaction]:
+def pullTransactions(file: FileStorage) -> list[Transaction]:
     dateExamples = {'date'}
     descriptionExamples = {'description'}
     amountExamples = {'amount'}
@@ -92,13 +92,8 @@ def pullTransactions(file, flipValues: bool) -> list[Transaction]:
         if not src.NormalizeData.isValidDate(row[dateIndex]):
             raise ValueError #To-Do: create custom exception and handle it
 
-        if flipValues == False:
-            transactions.append(Transaction(float(row[amountIndex]), row[dateIndex], row[descriptionIndex]))   
+        transactions.append(Transaction(float(row[amountIndex]), row[dateIndex], row[descriptionIndex]))   
 
-        elif flipValues == True:
-            if float(row[amountIndex]) > 0.00: transactions.append(Transaction(float(f'-{row[amountIndex]}'), row[dateIndex], row[descriptionIndex]))
-            else: transactions.append(Transaction(float(row[amountIndex].replace('-','')), row[dateIndex], row[descriptionIndex]))
-        
     file.close()
 
     return transactions
@@ -113,10 +108,9 @@ def groupTransactions(transactions: list) -> list[Transaction]:
 
     return transactions
 
-def categorizeTransactions(transactions: list) -> list[Transaction]:
+def categorizeTransactions(transactions: list[Transaction], internalTranfers: set) -> list[Transaction]:
     incomeModel = Models.Income.value
     purchaseModel = Models.Purchase.value
-    transferModel = Models.Transfer.value
 
     for t in transactions:
         match (t.group):
@@ -128,14 +122,18 @@ def categorizeTransactions(transactions: list) -> list[Transaction]:
                 t.category = purchaseModel.predict([t.info])[0]
 
             case TransactionType.Transfer.value: 
-                t.category = transferModel.predict([t.info])[0]
+                if t.info in internalTranfers:
+                    t.category = 'internal'
+                
+                else:
+                    t.category = 'external'
 
             case _: 
                 t.category = TransactionType.Undefined.value
 
-    del incomeModel; del purchaseModel; del transferModel
+    del incomeModel; del purchaseModel
 
-    return transactions
+    return transactions    
 
 def returnTransactions(transactions: list, returnType: ReturnType):
     match (returnType):

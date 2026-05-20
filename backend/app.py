@@ -24,7 +24,7 @@ def getTransations():
         case '': return jsonify({'Status': 'Fail', 'Message': "Null Return Type"}), 404
         case _: return jsonify({'Status': 'Fail', 'Message': "Invalid Return Type"}), 403
         
-    transactions = src.getTransactions.run(report, flipValues, returnType)
+    transactions = src.getTransactions.run(report, returnType)
 
     return jsonify({"Status": "Success", "transactions": transactions}), 200
 
