@@ -46,30 +46,39 @@ def getMonthReport(data: dict):
     except KeyError:
         returnType = ReturnType.JSON
 
-    return returnJson(categories)
+    match returnType:
+        case ReturnType.JSON: return returnJson(categories)
 
 def getDate(possibleDate: str):
     return possibleDate
 
-
 def returnJson(categories: dict) -> dict:
-    output = {}
+    purchases = [x[4] for x in categories['purchase']]
+    incomes = [x[4] for x in categories['income']]
+    external_transfers = [x[4] for x in categories['transfer'] if x[3].lower() == 'external']
 
-    count = 1
-
-    for category in categories.values():
-        for value in category:
-            output[count] = {
-                'test'
-            }
-
-            count += 1
-
-
-
-    print(output)
+    output = {
+        'profit': sum(purchases) + sum(incomes) + sum(external_transfers),
+        'losses': sum(purchases) + sum([x for x in external_transfers if x < 0]),
+        'gains': sum(incomes) + sum([x for x in external_transfers if x > 0]),
+        'purchase': getCategories(categories['purchase']),
+        'income': getCategories(categories['income']),
+        'transfer': getCategories(categories['transfer'])
+    }
+    
     return output
 
+def getCategories(arr: list) -> dict:
+    output = {}
 
-if __name__ == "__main__":
-    run(userID=1, inputType='month', date='2026-05', returnType='json')
+    for row in arr:
+        category = row[3]
+
+        value = row[4]
+
+        if category in output:
+            output[category] += value
+        else:
+            output[category] = value
+
+    return output
