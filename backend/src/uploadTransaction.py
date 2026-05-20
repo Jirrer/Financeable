@@ -1,19 +1,18 @@
 import sqlite3, os
 from dotenv import load_dotenv
+from src.exceptions import *
 
 load_dotenv()
 
 def run(userID, data):
     if not validUser(userID): 
-        print("Invalid User")
-
-        return False # add custom exceptions
+        raise InvalidUser()
 
     if type(data) == dict: 
         runJson(userID, data)
 
     else:
-        raise KeyError
+        raise BadUploadType(f'Type ({type(data)}) is not allowed')
     
 def validUser(potentialID: int) -> bool:
     with sqlite3.connect(os.getenv('DATABASE_LOCATION')) as connection:
@@ -34,7 +33,7 @@ def runJson(userID: int, dict: dict[dict]):
 
         for key, val in arraysByDict.items():
             query = f"""
-            INSERT INTO {key} (user_id, date, category, value, info)
+            INSERT INTO {key} (user_id, value, date, info, category)
             VALUES ({userID}, ?, ?, ?, ?)
             """
 
