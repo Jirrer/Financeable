@@ -1,5 +1,7 @@
 import sqlite3, os
+
 from dotenv import load_dotenv
+
 from src.exceptions import *
 
 load_dotenv()
@@ -30,7 +32,6 @@ def runJson(userID: int, dict: dict[dict]):
     with sqlite3.connect(os.getenv('DATABASE_LOCATION')) as connection:
         cursor = connection.cursor()
 
-
         for key, val in arraysByDict.items():
             query = f"""
             INSERT INTO {key} (user_id, value, date, info, category)
@@ -38,9 +39,6 @@ def runJson(userID: int, dict: dict[dict]):
             """
 
             cursor.executemany(query, val)
-
-            for x in val:
-                print(f"added {key} - {x}")
 
         connection.commit()
 

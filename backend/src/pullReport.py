@@ -1,7 +1,9 @@
-from enum import Enum
-from exceptions import *
 import sqlite3, os
+
+from enum import Enum
 from dotenv import load_dotenv
+
+from src.exceptions import *
 
 load_dotenv()
 
@@ -19,7 +21,7 @@ def run(**data):
     if not data['inputType']: raise KeyError
 
     match data['inputType'].upper():
-        case InputType.MONTH.name: getMonthReport(data)
+        case InputType.MONTH.name: return getMonthReport(data)
         case _ : raise KeyError
 
 def getMonthReport(data: dict):
@@ -37,7 +39,6 @@ def getMonthReport(data: dict):
                 f"SELECT * FROM {category} WHERE user_id = ? AND strftime('%Y-%m', date) = ?;", (data['userID'], date)
                 ).fetchall()
 
-
     try:
         match data['returnType'].upper():
             case ReturnType.JSON.name: returnType = ReturnType.JSON
@@ -46,17 +47,39 @@ def getMonthReport(data: dict):
     except KeyError:
         returnType = ReturnType.JSON
 
-    returnJson(categories)
+    match returnType:
+        case ReturnType.JSON: return returnJson(categories)
 
 def getDate(possibleDate: str):
     return possibleDate
 
+def returnJson(categories: dict) -> dict:
+    purchases = [x[4] for x in categories['purchase']]
+    incomes = [x[4] for x in categories['income']]
+    external_transfers = [x[4] for x in categories['transfer'] if x[3].lower() == 'external']
 
-def returnJson(categories: dict):
+    output = {
+        'profit': sum(purchases) + sum(incomes) + sum(external_transfers),
+        'losses': sum(purchases) + sum([x for x in external_transfers if x < 0]),
+        'gains': sum(incomes) + sum([x for x in external_transfers if x > 0]),
+        'purchase': getCategories(categories['purchase']),
+        'income': getCategories(categories['income']),
+        'transfer': getCategories(categories['transfer'])
+    }
+    
+    return output
 
+def getCategories(arr: list) -> dict:
+    output = {}
 
-    print(categories)
+    for row in arr:
+        category = row[3]
 
+        value = row[4]
 
-if __name__ == "__main__":
-    run(userID=1, inputType='month', date='2026-05', returnType='json')
+        if category in output:
+            output[category] += value
+        else:
+            output[category] = value
+
+    return output
