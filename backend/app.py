@@ -1,5 +1,7 @@
 import os
+
 from flask import Flask, jsonify, request
+
 import src.getTransactions as getTransactions
 import src.uploadTransaction as uploadTransaction
 import src.pullReport as pullReport
@@ -54,7 +56,6 @@ def get_report():
     if not user_id:
         return jsonify({"error": "Missing user id"}), 400
     
-
     try:
         report = pullReport.run(userID=user_id, inputType=input_type, date=date, returnType=return_type)
 
@@ -62,7 +63,6 @@ def get_report():
     except Exception as e:
         print(e)
         return str(e), 500
-
 
 if __name__ == "__main__":
     host = os.getenv("FLASK_RUN_HOST", "127.0.0.1")

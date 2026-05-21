@@ -24,7 +24,7 @@ def test_group_transactions(mock_csv_file):
     for t in good_response:
         assert t.group.lower() != 'ungrouped'
 
-def test_group_transactions(mock_csv_file):
+def test_categorize_transactions(mock_csv_file):
     transactions = getTransactinons.pullTransactions(mock_csv_file)
 
     transactions = getTransactinons.groupTransactions(transactions)
