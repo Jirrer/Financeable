@@ -1,5 +1,5 @@
 from enum import Enum
-from exceptions import *
+from src.exceptions import *
 import sqlite3, os
 from dotenv import load_dotenv
 
@@ -19,7 +19,7 @@ def run(**data):
     if not data['inputType']: raise KeyError
 
     match data['inputType'].upper():
-        case InputType.MONTH.name: getMonthReport(data)
+        case InputType.MONTH.name: return getMonthReport(data)
         case _ : raise KeyError
 
 def getMonthReport(data: dict):
@@ -82,3 +82,6 @@ def getCategories(arr: list) -> dict:
             output[category] = value
 
     return output
+
+if __name__ == "__main__":
+    print(run(userID=1, inputType='month', date='2026-03', returnType='json'))

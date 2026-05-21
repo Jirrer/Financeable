@@ -4,6 +4,8 @@ from pathlib import Path
 import src.NormalizeData
 from werkzeug.datastructures import FileStorage
 import csv, sys, io, joblib, sys
+from datetime import datetime
+from src.exceptions import *
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 PYTHON_DIR = BASE_DIR / "python"
@@ -17,6 +19,7 @@ if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
 CLASSIFIERS_DIR = BASE_DIR / "models\\classifiers"
 
 # To-Do: change how models are loaded (so i can use pytest)
+# To-Do: build how internal_transfers are built
 
 class TransactionType(Enum):
     Income = 'income'
@@ -92,17 +95,37 @@ def pullTransactions(file: FileStorage) -> list[Transaction]:
         if not src.NormalizeData.isValidDate(row[dateIndex]):
             raise ValueError #To-Do: create custom exception and handle it
 
-        transactions.append(Transaction(float(row[amountIndex]), row[dateIndex], row[descriptionIndex]))   
+        transactions.append(Transaction(float(row[amountIndex]), formatDate(row[dateIndex]), row[descriptionIndex]))   
 
     file.close()
 
     return transactions
 
-def groupTransactions(transactions: list) -> list[Transaction]:
+def formatDate(date: str) -> str:
+    formats = [
+        "%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y", "%B %d, %Y",
+        "%b %d, %Y", "%d-%m-%Y", "%m-%d-%Y", "%Y/%m/%d",
+        "%d %B %Y", "%d %b %Y", "%m.%d.%Y", "%d.%m.%Y",
+    ]
+    for fmt in formats:
+        try:
+            return datetime.strptime(date.strip(), fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    raise ValueError(f"Unrecognized date format: '{date}'")
+
+
+def groupTransactions(transactions: list[Transaction]) -> list[Transaction]:
     transactionModel = Models.Transaction.value
 
     for t in transactions:
         t.group = transactionModel.predict([t.info])[0]
+
+        match t.group:
+            case TransactionType.Income.value: t.value = abs(t.value)
+            case TransactionType.Purchase.value: t.value = -abs(t.value)
+            case TransactionType.Transfer.value: continue
+            case TransactionType.Undefined.value: raise BadTransactionType 
 
     del transactionModel
 
