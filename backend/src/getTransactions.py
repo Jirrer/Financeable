@@ -1,10 +1,10 @@
+import csv, sys, io, joblib, sys
+
 from enum import Enum
 from pathlib import Path
-from pathlib import Path
-import src.NormalizeData
 from werkzeug.datastructures import FileStorage
-import csv, sys, io, joblib, sys
-from datetime import datetime
+
+import src.NormalizeData as NormalizeData
 from src.exceptions import *
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -44,7 +44,6 @@ class Models(Enum):
     Transaction = joblib.load(str(CLASSIFIERS_DIR / "TransactionClassifier.joblib"))
     Income = joblib.load(str(CLASSIFIERS_DIR / "IncomeClassifier.joblib"))
     Purchase = joblib.load(str(CLASSIFIERS_DIR / "PurchaseClassifier.joblib"))
-    # Transfer = joblib.load(str(CLASSIFIERS_DIR / "TransferClassifier.joblib"))
  
 class Transaction:
     def __init__(self, transactionValue: float, tranasctionDate, transactionInfo):
@@ -92,28 +91,14 @@ def pullTransactions(file: FileStorage) -> list[Transaction]:
     transactions = []
 
     for row in reader:
-        if not src.NormalizeData.isValidDate(row[dateIndex]):
+        if not NormalizeData.isValidDate(row[dateIndex]):
             raise ValueError #To-Do: create custom exception and handle it
 
-        transactions.append(Transaction(float(row[amountIndex]), formatDate(row[dateIndex]), row[descriptionIndex]))   
+        transactions.append(Transaction(float(row[amountIndex]), NormalizeData.formatDate(row[dateIndex]), row[descriptionIndex]))   
 
     file.close()
 
     return transactions
-
-def formatDate(date: str) -> str:
-    formats = [
-        "%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y", "%B %d, %Y",
-        "%b %d, %Y", "%d-%m-%Y", "%m-%d-%Y", "%Y/%m/%d",
-        "%d %B %Y", "%d %b %Y", "%m.%d.%Y", "%d.%m.%Y",
-    ]
-    for fmt in formats:
-        try:
-            return datetime.strptime(date.strip(), fmt).strftime("%Y-%m-%d")
-        except ValueError:
-            continue
-    raise ValueError(f"Unrecognized date format: '{date}'")
-
 
 def groupTransactions(transactions: list[Transaction]) -> list[Transaction]:
     transactionModel = Models.Transaction.value
@@ -141,7 +126,7 @@ def categorizeTransactions(transactions: list[Transaction], internalTranfers: se
                 t.category = incomeModel.predict([t.info])[0]
                 
             case TransactionType.Purchase.value: 
-                t.info = src.NormalizeData.normalizePurchase(t.info)
+                t.info = NormalizeData.normalizePurchase(t.info)
                 t.category = purchaseModel.predict([t.info])[0]
 
             case TransactionType.Transfer.value: 

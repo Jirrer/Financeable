@@ -1,7 +1,9 @@
-from enum import Enum
-from src.exceptions import *
 import sqlite3, os
+
+from enum import Enum
 from dotenv import load_dotenv
+
+from src.exceptions import *
 
 load_dotenv()
 
@@ -36,7 +38,6 @@ def getMonthReport(data: dict):
             categories[category] = cursor.execute(
                 f"SELECT * FROM {category} WHERE user_id = ? AND strftime('%Y-%m', date) = ?;", (data['userID'], date)
                 ).fetchall()
-
 
     try:
         match data['returnType'].upper():
@@ -82,6 +83,3 @@ def getCategories(arr: list) -> dict:
             output[category] = value
 
     return output
-
-if __name__ == "__main__":
-    print(run(userID=1, inputType='month', date='2026-03', returnType='json'))

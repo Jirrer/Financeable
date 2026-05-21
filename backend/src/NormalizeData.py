@@ -1,6 +1,19 @@
 import re
 from datetime import datetime
 
+def formatDate(date: str) -> str:
+    formats = [
+        "%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y", "%B %d, %Y",
+        "%b %d, %Y", "%d-%m-%Y", "%m-%d-%Y", "%Y/%m/%d",
+        "%d %B %Y", "%d %b %Y", "%m.%d.%Y", "%d.%m.%Y",
+    ]
+    for fmt in formats:
+        try:
+            return datetime.strptime(date.strip(), fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    raise ValueError(f"Unrecognized date format: '{date}'")
+
 def isValidDate(possibleDate: str) -> bool:
     formats = ["%m/%d/%y", "%m-%d-%y", "%m/%d/%Y", "%m-%d-%Y", "%y/%m/%d", "%y-%m-%d", "%Y-%m-%d", "%Y/%m/%d", "%d/%m/%Y"]
     
