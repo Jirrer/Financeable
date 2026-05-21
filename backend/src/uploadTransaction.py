@@ -39,9 +39,6 @@ def runJson(userID: int, dict: dict[dict]):
 
             cursor.executemany(query, val)
 
-            for x in val:
-                print(f"added {key} - {x}")
-
         connection.commit()
 
 def getArraysByDict(dictInput: dict[dict]) -> dict[list[tuple]]:
