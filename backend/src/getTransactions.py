@@ -1,9 +1,11 @@
+import csv, sys, io, joblib, sys
+
 from enum import Enum
 from pathlib import Path
-from pathlib import Path
-import src.NormalizeData
 from werkzeug.datastructures import FileStorage
-import csv, sys, io, joblib, sys
+
+import src.NormalizeData as NormalizeData
+from src.exceptions import *
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 PYTHON_DIR = BASE_DIR / "python"
@@ -17,6 +19,7 @@ if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
 CLASSIFIERS_DIR = BASE_DIR / "models\\classifiers"
 
 # To-Do: change how models are loaded (so i can use pytest)
+# To-Do: build how internal_transfers are built
 
 class TransactionType(Enum):
     Income = 'income'
@@ -41,7 +44,6 @@ class Models(Enum):
     Transaction = joblib.load(str(CLASSIFIERS_DIR / "TransactionClassifier.joblib"))
     Income = joblib.load(str(CLASSIFIERS_DIR / "IncomeClassifier.joblib"))
     Purchase = joblib.load(str(CLASSIFIERS_DIR / "PurchaseClassifier.joblib"))
-    Transfer = joblib.load(str(CLASSIFIERS_DIR / "TransferClassifier.joblib"))
  
 class Transaction:
     def __init__(self, transactionValue: float, tranasctionDate, transactionInfo):
@@ -57,16 +59,16 @@ class Transaction:
 class ReturnType(Enum):
     JSON = 1,
 
-def run(csvFile: FileStorage, flipValues: bool, returnType: ReturnType) -> bool:
-    transactions = pullTransactions(csvFile, flipValues)
+def run(csvFile: FileStorage, returnType: ReturnType, internalTransfers: set) -> bool:
+    transactions = pullTransactions(csvFile)
 
     transactions = groupTransactions(transactions)
 
-    transactions = categorizeTransactions(transactions)
+    transactions = categorizeTransactions(transactions, internalTransfers)
 
     return returnTransactions(transactions, returnType)
 
-def pullTransactions(file, flipValues: bool) -> list[Transaction]:
+def pullTransactions(file: FileStorage) -> list[Transaction]:
     dateExamples = {'date'}
     descriptionExamples = {'description'}
     amountExamples = {'amount'}
@@ -89,34 +91,34 @@ def pullTransactions(file, flipValues: bool) -> list[Transaction]:
     transactions = []
 
     for row in reader:
-        if not src.NormalizeData.isValidDate(row[dateIndex]):
+        if not NormalizeData.isValidDate(row[dateIndex]):
             raise ValueError #To-Do: create custom exception and handle it
 
-        if flipValues == False:
-            transactions.append(Transaction(float(row[amountIndex]), row[dateIndex], row[descriptionIndex]))   
+        transactions.append(Transaction(float(row[amountIndex]), NormalizeData.formatDate(row[dateIndex]), row[descriptionIndex]))   
 
-        elif flipValues == True:
-            if float(row[amountIndex]) > 0.00: transactions.append(Transaction(float(f'-{row[amountIndex]}'), row[dateIndex], row[descriptionIndex]))
-            else: transactions.append(Transaction(float(row[amountIndex].replace('-','')), row[dateIndex], row[descriptionIndex]))
-        
     file.close()
 
     return transactions
 
-def groupTransactions(transactions: list) -> list[Transaction]:
+def groupTransactions(transactions: list[Transaction]) -> list[Transaction]:
     transactionModel = Models.Transaction.value
 
     for t in transactions:
         t.group = transactionModel.predict([t.info])[0]
 
+        match t.group:
+            case TransactionType.Income.value: t.value = abs(t.value)
+            case TransactionType.Purchase.value: t.value = -abs(t.value)
+            case TransactionType.Transfer.value: continue
+            case TransactionType.Undefined.value: raise BadTransactionType 
+
     del transactionModel
 
     return transactions
 
-def categorizeTransactions(transactions: list) -> list[Transaction]:
+def categorizeTransactions(transactions: list[Transaction], internalTranfers: set) -> list[Transaction]:
     incomeModel = Models.Income.value
     purchaseModel = Models.Purchase.value
-    transferModel = Models.Transfer.value
 
     for t in transactions:
         match (t.group):
@@ -124,18 +126,22 @@ def categorizeTransactions(transactions: list) -> list[Transaction]:
                 t.category = incomeModel.predict([t.info])[0]
                 
             case TransactionType.Purchase.value: 
-                t.info = src.NormalizeData.normalizePurchase(t.info)
+                t.info = NormalizeData.normalizePurchase(t.info)
                 t.category = purchaseModel.predict([t.info])[0]
 
             case TransactionType.Transfer.value: 
-                t.category = transferModel.predict([t.info])[0]
+                if t.info in internalTranfers:
+                    t.category = 'internal'
+                
+                else:
+                    t.category = 'external'
 
             case _: 
                 t.category = TransactionType.Undefined.value
 
-    del incomeModel; del purchaseModel; del transferModel
+    del incomeModel; del purchaseModel
 
-    return transactions
+    return transactions    
 
 def returnTransactions(transactions: list, returnType: ReturnType):
     match (returnType):
