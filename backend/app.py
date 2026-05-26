@@ -1,12 +1,13 @@
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 import os
 
-from flask import Flask, jsonify, request
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173"]}})
 
 import src.getTransactions as getTransactions
 import src.uploadTransaction as uploadTransaction
 import src.pullReport as pullReport
-
-app = Flask(__name__)
 
 @app.route("/create-report", methods=['POST'])
 def get_transations():
