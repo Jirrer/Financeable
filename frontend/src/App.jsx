@@ -148,8 +148,8 @@ function App() {
 		}
 	}, [selectedMonth, activeScreen])
 
-	// if (isLoggedIn) {
-    if (true) {
+	if (isLoggedIn) {
+    // if (true) {
 		const screenTitle = activeScreen === 'Reports' ? 'Reports' : 'Log-Data'
 
 		return (
