@@ -1,15 +1,40 @@
+import os
+import logging
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import os
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173"]}})
+
+def _rate_key():
+    # prefer an explicit user id or auth header for per-user limits, fallback to client IP
+    return request.headers.get("X-User-ID") or request.headers.get("Authorization") or get_remote_address()
+
+# Configure storage backend for Flask-Limiter via env var `RATELIMIT_STORAGE_URI`.
+# Examples: redis://localhost:6379 or memory://
+storage_uri = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
+
+if storage_uri.startswith("memory"):
+    logging.getLogger(__name__).warning(
+        "RATELIMIT_STORAGE_URI not set; using in-memory storage. Not recommended for production."
+    )
+
+limiter = Limiter(
+    key_func=_rate_key,
+    app=app,
+    default_limits=["30 per minute"],
+    storage_uri=storage_uri,
+)
 
 import src.getTransactions as getTransactions
 import src.uploadTransaction as uploadTransaction
 import src.pullReport as pullReport
 
 @app.route("/create-report", methods=['POST'])
+@limiter.limit("1 per minute; 10 per day")
 def get_transations():
     if 'report' not in request.files: return 'No file', 400
     
@@ -31,6 +56,7 @@ def get_transations():
     return jsonify({"Status": "Success", "transactions": transactions}), 200
 
 @app.route("/upload-report", methods=['POST'])
+@limiter.limit("10 per minute; 200 per day")
 def upload_report():
     data = request.json
 
@@ -48,6 +74,7 @@ def upload_report():
         return str(e), 500
     
 @app.route("/get-report", methods=["GET"])
+@limiter.limit("60 per minute; 2000 per day")
 def get_report():
     user_id = request.args.get("id", type=str)
     input_type = request.args.get("input_type", type=str)
