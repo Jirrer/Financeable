@@ -1,13 +1,68 @@
 import os
 import logging
 
+from pathlib import Path
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_login import LoginManager, current_user, login_required, login_user, logout_user
+from flask_bcrypt import Bcrypt
+
+try:
+    from .models import db, User
+except ImportError:
+    from models import db, User
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173"]}})
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
+app.config["SESSION_COOKIE_SAMESITE"] = "None"
+app.config["SESSION_COOKIE_SECURE"] = True   # required when SameSite=None
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+database_location = os.getenv("DATABASE_LOCATION")
+
+if database_location:
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{Path(database_location).resolve().as_posix()}"
+else:
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///financeable.db")
+
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db.init_app(app)
+
+
+CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:5173"], supports_credentials=True)
+
+@app.after_request
+def ensure_cors_credentials(response):
+    origin = request.headers.get("Origin")
+    allowed_origins = {"http://localhost:5173", "http://127.0.0.1:5173"}
+    if origin in allowed_origins:
+        response.headers["Access-Control-Allow-Origin"] = origin
+    # ensure credentials header is exactly 'true' for credentialed requests
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    # allow the common headers we use
+    response.headers.setdefault("Access-Control-Allow-Headers", "Content-Type,Authorization")
+    response.headers.setdefault("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+    return response
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(id):
+    try:
+        return db.session.get(User, int(id)) if id else None
+    except (TypeError, ValueError):
+        return None
+
+def _user_payload(user):
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+    }
+
+bcrypt = Bcrypt(app)
 
 def _rate_key():
     # prefer an explicit user id or auth header for per-user limits, fallback to client IP
@@ -33,7 +88,74 @@ import src.getTransactions as getTransactions
 import src.uploadTransaction as uploadTransaction
 import src.pullReport as pullReport
 
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.json
+    
+    username = data.get("username", "").strip()
+    password = data.get("password", "")
+    email = data.get("email")
+
+    if not username or not password:
+        return jsonify({"error": "Missing username or password"}), 400
+
+    existing_user = User.query.filter_by(username=username).first()
+    if existing_user:
+        return jsonify({"error": "Username already exists"}), 409
+
+    user = User(
+        username=username,
+        password=bcrypt.generate_password_hash(password).decode("utf-8"),
+        email=email,
+    )
+    db.session.add(user)
+    db.session.commit()
+    login_user(user)
+
+    return jsonify({"status": "success", "user": _user_payload(user)}), 201
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+
+    username = data.get("username", "").strip()
+    password = data.get("password", "")
+
+    if not username or not password:
+        return jsonify({"error": "Missing username or password"}), 400
+
+    user = User.query.filter_by(username=username).first()
+
+    try:
+        password_matches = user and bcrypt.check_password_hash(user.password, password)
+    except ValueError:
+        password_matches = False
+
+    if not password_matches:
+        return jsonify({"error": "Invalid credentials"}), 401
+
+    login_user(user)
+    return jsonify({"status": "success", "user": _user_payload(user)}), 200
+
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    if current_user.is_authenticated:
+        logout_user()
+
+    return jsonify({"status": "success"}), 200
+
+
+@app.route("/me", methods=["GET"])
+def me():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    return jsonify({"status": "success", "user": _user_payload(current_user)}), 200
+
 @app.route("/create-report", methods=['POST'])
+@login_required
 @limiter.limit("1 per minute; 10 per day")
 def get_transations():
     if 'report' not in request.files: return 'No file', 400
@@ -56,6 +178,7 @@ def get_transations():
     return jsonify({"Status": "Success", "transactions": transactions}), 200
 
 @app.route("/upload-report", methods=['POST'])
+@login_required
 @limiter.limit("10 per minute; 200 per day")
 def upload_report():
     data = request.json
@@ -73,19 +196,22 @@ def upload_report():
         print(e)
         return str(e), 500
     
-@app.route("/get-report", methods=["GET"])
+@app.route("/get-report", methods=["POST"])
+@login_required
 @limiter.limit("60 per minute; 2000 per day")
 def get_report():
-    user_id = request.args.get("id", type=str)
-    input_type = request.args.get("input_type", type=str)
-    date = request.args.get("date", type=str)
-    return_type = request.args.get("return_type", type=str)
+    data = request.json
 
-    if not user_id:
-        return jsonify({"error": "Missing user id"}), 400
-    
+    input_type = data['input_type']
+    date = data['date']
+    return_type = data['return_type']
+
+    user = _user_payload(current_user)
+
+    print(user)
+
     try:
-        report = pullReport.run(userID=user_id, inputType=input_type, date=date, returnType=return_type)
+        report = pullReport.run(userID=user['id'], inputType=input_type, date=date, returnType=return_type)
 
         return jsonify({'status': 'success', 'report': report}), 200
     except Exception as e:
