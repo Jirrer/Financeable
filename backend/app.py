@@ -105,7 +105,6 @@ def register():
 
     return jsonify({"status": "success", "user": _user_payload(user)}), 201
 
-
 @app.route("/login", methods=["POST"])
 @limiter.limit("60 per minute; 20000 per day")
 def login():
