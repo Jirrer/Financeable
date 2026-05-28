@@ -46,9 +46,7 @@ def test_create_report(client, mock_csv_file, mock_get_transactions):
     assert response.status_code == 200
     body = response.get_json()
     assert body["Status"] == "Success"
-    assert body["transactions"] == mock_get_transactions(None, None, None)
-        
-     
+    assert body["transactions"] == mock_get_transactions(None, None, None)  
 
 def test_upload_report(client, mock_valid_user):
     client.post(
@@ -82,15 +80,32 @@ def test_get_report(client):
 
     client.post("/login", json={"username": "newuser", "password": "secret123"})
 
-    payload = {
-        "input_type": "month",
-        "date": "2026-04",
+    oneMonthYear = {
+        "date_start": "2026-04",
+        "date_end": "2026-04",
+        "return_type": "JSON"
+    }
+
+    missingMonth = {
+        "date_end": "2026-04",
+        "return_type": "JSON"
+    }
+
+
+    missingYear = {
+        "date_start": "2026-04",
         "return_type": "JSON"
     }
     
-    response = client.post("/get-report", json=payload)
-       
-    assert response.status_code == 200
-    body = response.get_json()
+    goodResponse = client.post("/get-report", json=oneMonthYear)   
+    assert goodResponse.status_code == 200
+
+    body = goodResponse.get_json()
     assert body["status"] == "success"
     assert "report" in body
+
+    nullResponse = client.post("/get-report", json=missingMonth) 
+    assert nullResponse.status_code == 400
+
+    nullResponse = client.post("/get-report", json=missingYear) 
+    assert nullResponse.status_code == 400
