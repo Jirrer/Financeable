@@ -196,6 +196,12 @@ def get_report():
 
     user = _user_payload(current_user)
 
+    if 'date_start' not in data:
+        return jsonify({'Status': 'Fail', 'Message': "Null Start Date"}), 400
+    
+    if 'date_end' not in data:
+        return jsonify({'Status': 'Fail', 'Message': "Null End Date"}), 400
+
     try:
         report = pullReport.run(
             userID=user['id'], 
