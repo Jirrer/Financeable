@@ -22,6 +22,8 @@ class Date:
 
         else:
             raise BadDateInput
+
+        self.month = str(int(self.month)).zfill(2)
         
     def __lt__(self, other):
         if not isinstance(other, Date):
@@ -75,7 +77,7 @@ def run(userID: int, dateStartInput: str, dateEndInput: str, returnType: ReturnT
             return output
 
         if int(dateStart.month) < 12:
-            dateStart.month = str(int(dateStart.month) + 1)
+            dateStart.month = str(int(dateStart.month) + 1).zfill(2)
         else:
             dateStart.month = '01'
             dateStart.year = str(int(dateStart.year) + 1)  
@@ -94,7 +96,6 @@ def getDatabaseOutput(userID, date: Date):
     return categories
 
 def returnJson(categories: dict) -> dict:
-    print(categories)
     purchases = [x[4] for x in categories['purchase']]
     incomes = [x[4] for x in categories['income']]
     external_transfers = [x[4] for x in categories['transfer'] if x[3].lower() == 'external']
