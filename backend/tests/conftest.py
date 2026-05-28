@@ -44,7 +44,7 @@ def seeded_db(test_db_path):
         connection.executescript(schema_path.read_text(encoding="utf-8"))
         connection.execute(
             'INSERT INTO "user" (id, username, password, email) VALUES (?, ?, ?, ?)',
-            (1, "testuser", "$2b$12$5q1X0n2Rz0hXw0x4Q9kFNeC6d1z5V7A9QhNn4p9Yk2v1Y0fS7dK8a", "test@example.com"),
+            (1, "testuser", "password", "test@example.com"),
         )
         connection.commit()
 
