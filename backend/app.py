@@ -148,26 +148,52 @@ def logout():
 
 @app.route("/create-report", methods=['POST'])
 @login_required
-@limiter.limit("1 per minute; 10 per day")
+@limiter.limit("10 per minute; 200 per day")
 def get_transations():
-    if 'report' not in request.files: return 'No file', 400
-    
-    report = request.files['report']
+    submittedFiles = request.files.getlist('report')
 
-    if not request.form['internal_transfers']:
-        internal_transfers = set()
+    if not submittedFiles:
+        return 'No file(s) submitted', 400
 
+    internal_transfers = set(request.form.get('internal_transfers', '').split(',')) if request.form.get('internal_transfers') else set()
+
+    return_type = request.form.get('returnType', '').upper()
+    if return_type == 'JSON':
+        returnType = getTransactions.ReturnType.JSON
+    elif return_type == '':
+        return jsonify({'Status': 'Fail', 'Message': "Null Return Type"}), 404
     else:
-        internal_transfers = set(request.form['internal_transfers'].split(','))
+        return jsonify({'Status': 'Fail', 'Message': "Invalid Return Type"}), 403
 
-    match request.form['returnType'].upper():
-        case 'JSON': returnType = getTransactions.ReturnType.JSON
-        case '': return jsonify({'Status': 'Fail', 'Message': "Null Return Type"}), 404
-        case _: return jsonify({'Status': 'Fail', 'Message': "Invalid Return Type"}), 403
-        
-    transactions = getTransactions.run(report, returnType, internal_transfers)
+    all_transactions = {}
+    counter = 0
 
-    return jsonify({"Status": "Success", "transactions": transactions}), 200
+    # To-Do: refactor
+
+    for file in submittedFiles:
+        foundTransactions = getTransactions.run(file, returnType, internal_transfers)
+
+        if isinstance(foundTransactions, dict):
+            if 'transactions' in foundTransactions and isinstance(foundTransactions['transactions'], list):
+                transactions = foundTransactions['transactions']
+            elif all(isinstance(v, dict) for v in foundTransactions.values()):
+                transactions = list(foundTransactions.values())
+            else:
+                transactions = [foundTransactions]
+
+        elif isinstance(foundTransactions, list):
+            transactions = foundTransactions
+        else:
+            transactions = [foundTransactions] if foundTransactions else []
+
+        for t in transactions:
+            counter += 1
+            if isinstance(t, dict):
+                t['combined_index'] = counter
+
+            all_transactions[counter] = t
+
+    return jsonify({"Status": "Success", "transactions": all_transactions}), 200
 
 @app.route("/upload-report", methods=['POST'])
 @login_required
