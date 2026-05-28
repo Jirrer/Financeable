@@ -194,14 +194,21 @@ def upload_report():
 def get_report():
     data = request.json
 
-    input_type = data['input_type']
-    date = data['date']
-    return_type = data['return_type']
-
     user = _user_payload(current_user)
 
+    if 'date_start' not in data:
+        return jsonify({'Status': 'Fail', 'Message': "Null Start Date"}), 400
+    
+    if 'date_end' not in data:
+        return jsonify({'Status': 'Fail', 'Message': "Null End Date"}), 400
+
     try:
-        report = pullReport.run(userID=user['id'], inputType=input_type, date=date, returnType=return_type)
+        report = pullReport.run(
+            userID=user['id'], 
+            dateStartInput=data['date_start'], 
+            dateEndInput=data['date_end'], 
+            returnType=data['return_type']
+        )
 
         return jsonify({'status': 'success', 'report': report}), 200
     except Exception as e:

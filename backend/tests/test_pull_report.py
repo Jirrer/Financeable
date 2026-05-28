@@ -1,16 +1,12 @@
-
-
+import src.pullReport as pullReport
 
 def test_run():
     pass
 
-def test_get_month_report():
+def test_get_database_output():
     pass
 
-def test_get_date():
-    pass
-
-def test_return_json():
+def test_returnJson():
     pass
 
 def test_get_categories():
