@@ -14,11 +14,13 @@ try:
 except ImportError:
     from models import db, User
 
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
 app.config["SESSION_COOKIE_SAMESITE"] = "None"
 app.config["SESSION_COOKIE_SECURE"] = True   # required when SameSite=None
 app.config["SESSION_COOKIE_HTTPONLY"] = True
+
 database_location = os.getenv("DATABASE_LOCATION")
 
 if database_location:
@@ -29,24 +31,12 @@ else:
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
-
 CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:5173"], supports_credentials=True)
-
-@app.after_request
-def ensure_cors_credentials(response):
-    origin = request.headers.get("Origin")
-    allowed_origins = {"http://localhost:5173", "http://127.0.0.1:5173"}
-    if origin in allowed_origins:
-        response.headers["Access-Control-Allow-Origin"] = origin
-    # ensure credentials header is exactly 'true' for credentialed requests
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    # allow the common headers we use
-    response.headers.setdefault("Access-Control-Allow-Headers", "Content-Type,Authorization")
-    response.headers.setdefault("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-    return response
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+bcrypt = Bcrypt(app)
 
 @login_manager.user_loader
 def load_user(id):
@@ -62,11 +52,11 @@ def _user_payload(user):
         "email": user.email,
     }
 
-bcrypt = Bcrypt(app)
-
-def _rate_key():
-    # prefer an explicit user id or auth header for per-user limits, fallback to client IP
-    return request.headers.get("X-User-ID") or request.headers.get("Authorization") or get_remote_address()
+def get_user_key():
+    if current_user.is_authenticated:
+        return f"user:{current_user.id}"
+    
+    return f"ip:{get_remote_address()}"
 
 # Configure storage backend for Flask-Limiter via env var `RATELIMIT_STORAGE_URI`.
 # Examples: redis://localhost:6379 or memory://
@@ -78,7 +68,7 @@ if storage_uri.startswith("memory"):
     )
 
 limiter = Limiter(
-    key_func=_rate_key,
+    key_func=get_user_key,
     app=app,
     default_limits=["30 per minute"],
     storage_uri=storage_uri,
@@ -89,6 +79,7 @@ import src.uploadTransaction as uploadTransaction
 import src.pullReport as pullReport
 
 @app.route("/register", methods=["POST"])
+@limiter.limit("1 per day")
 def register():
     data = request.json
     
@@ -116,6 +107,7 @@ def register():
 
 
 @app.route("/login", methods=["POST"])
+@limiter.limit("60 per minute; 20000 per day")
 def login():
     data = request.json
 
@@ -140,19 +132,12 @@ def login():
 
 
 @app.route("/logout", methods=["POST"])
+@limiter.limit("60 per minute; 20000 per day")
 def logout():
     if current_user.is_authenticated:
         logout_user()
 
     return jsonify({"status": "success"}), 200
-
-
-@app.route("/me", methods=["GET"])
-def me():
-    if not current_user.is_authenticated:
-        return jsonify({"error": "Not authenticated"}), 401
-
-    return jsonify({"status": "success", "user": _user_payload(current_user)}), 200
 
 @app.route("/create-report", methods=['POST'])
 @login_required
