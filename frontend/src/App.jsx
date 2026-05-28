@@ -19,9 +19,45 @@ function App() {
 	const [incomeChartData, setIncomeChartData] = useState(null)
     const [historyChartData, setHistoryChartData] = useState(null)
 	const defaultMonth = new Date().toISOString().slice(0,7) // YYYY-MM
-	const [selectedMonth, setSelectedMonth] = useState(defaultMonth)
-    const [historyMonthOne, setHistoryMonthOne] = useState(defaultMonth)
-    const [historyMonthTwo, setHistoryMonthTwo] = useState(defaultMonth)
+	const [selectedStartMonth, setSelectedStartMonth] = useState(defaultMonth)
+	const [selectedEndMonth, setSelectedEndMonth] = useState(defaultMonth)
+
+	function aggregateCategoryTotals(monthlyReport = {}) {
+		const months = Object.values(monthlyReport)
+		const purchaseTotals = {}
+		const incomeTotals = {}
+
+		for (const monthData of months) {
+			if (!monthData || typeof monthData !== 'object') continue
+
+			if (monthData.purchase && typeof monthData.purchase === 'object') {
+				for (const [category, amount] of Object.entries(monthData.purchase)) {
+					purchaseTotals[category] = (purchaseTotals[category] ?? 0) + Number(amount ?? 0)
+				}
+			}
+
+			if (monthData.income && typeof monthData.income === 'object') {
+				for (const [category, amount] of Object.entries(monthData.income)) {
+					incomeTotals[category] = (incomeTotals[category] ?? 0) + Number(amount ?? 0)
+				}
+			}
+		}
+
+		return { purchaseTotals, incomeTotals }
+	}
+
+	function buildPieData(categoryTotals, colors) {
+		if (!categoryTotals || typeof categoryTotals !== 'object') return null
+		const labels = Object.keys(categoryTotals)
+		if (!labels.length) return null
+
+		const values = labels.map((k) => Math.abs(Number(categoryTotals[k] ?? 0)))
+
+		return {
+			labels,
+			datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderColor: '#fff', borderWidth: 1 }],
+		}
+	}
 
 	async function handleSubmit(event) {
 		event.preventDefault()
@@ -107,39 +143,28 @@ function App() {
 		setusername('');
 	}
 
-	async function getMonth(month = selectedMonth) {
+	async function getMonth(monthStart = selectedStartMonth, monthEnd = selectedEndMonth) {
 		const url = `${apiBaseUrl}/get-report?`
+		const start = monthStart <= monthEnd ? monthStart : monthEnd
+		const end = monthStart <= monthEnd ? monthEnd : monthStart
 
 		try {
 			const response = await fetch(url, {
 				method: 'POST',
 				credentials: 'include',
 				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify({ input_type: 'month', date: selectedMonth, return_type: 'json' })
+				body: JSON.stringify({ date_start: start, date_end: end, return_type: 'json' })
 				})
 
 			if (response.ok) {
 				const json = await response.json()
+				
+				const report = json?.report ?? {}
+				const { purchaseTotals, incomeTotals } = aggregateCategoryTotals(report)
+				const purchaseData = buildPieData(purchaseTotals, ['#0ea5e9', '#60a5fa', '#34d399', '#f97316', '#f43f5e'])
+				const incomeData = buildPieData(incomeTotals, ['#34d399', '#60a5fa', '#0ea5e9', '#f97316', '#f43f5e'])
 
-				const report = json?.report ?? json
-				let purchaseData = null
-				let incomeData = null
-
-				if (report && report.purchase && typeof report.purchase === 'object' && Object.keys(report.purchase).length) {
-					const labels = Object.keys(report.purchase)
-					const values = labels.map((k) => Math.abs(Number(report.purchase[k] ?? 0)))
-					const colors = ['#0ea5e9', '#60a5fa', '#34d399', '#f97316', '#f43f5e']
-					purchaseData = { labels, datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderColor: '#fff', borderWidth: 1 }] }
-				}
-
-				if (report && report.income && typeof report.income === 'object' && Object.keys(report.income).length) {
-					const ilabels = Object.keys(report.income)
-					const ivalues = ilabels.map((k) => Math.abs(Number(report.income[k] ?? 0)))
-					const colors = ['#34d399', '#60a5fa', '#0ea5e9', '#f97316', '#f43f5e']
-					incomeData = { labels: ilabels, datasets: [{ data: ivalues, backgroundColor: colors.slice(0, ilabels.length), borderColor: '#fff', borderWidth: 1 }] }
-				}
-
-				return { selectedMonth, purchaseData, incomeData, report }
+				return { purchaseData, incomeData, report }
 			} else {
 				console.warn('Backend returned non-ok', response.status)
 			}
@@ -147,10 +172,10 @@ function App() {
 			console.warn('Backend fetch failed', err)
 		}
 
-		return { selectedMonth, purchaseData: null, incomeData: null, report: null }
+		return { purchaseData: null, incomeData: null, report: null }
 	}
 
-    async function getHistory(monthStart = historyMonthOne, monthEnd = historyMonthTwo) {
+    async function getHistory(monthStart = selectedStartMonth, monthEnd = selectedEndMonth) {
         return { data: null }
 
 		const id = 1
@@ -200,14 +225,14 @@ function App() {
 		if (activeScreen === 'Reports') {
 			let mounted = true
 
-			getMonth(selectedMonth).then((res) => {
+			getMonth(selectedStartMonth, selectedEndMonth).then((res) => {
 				if (!mounted) return
 				setPurchaseChartData(res.purchaseData)
 				setIncomeChartData(res.incomeData)
 			})
 
             mounted = true
-            getHistory(historyMonthOne, historyMonthTwo).then((res) => {
+            getHistory(selectedStartMonth, selectedEndMonth).then((res) => {
 				if (!mounted) return
 				setHistoryChartData(res.data)
 			})
@@ -216,7 +241,7 @@ function App() {
 				mounted = false
 			}
 		}
-	}, [isLoggedIn, selectedMonth, activeScreen, historyMonthOne, historyMonthTwo])
+	}, [isLoggedIn, selectedStartMonth, selectedEndMonth, activeScreen])
 
 	if (isLoggedIn) {
 		const screenTitle = activeScreen === 'Reports' ? 'Reports' : 'Log-Data'
@@ -254,7 +279,10 @@ function App() {
 						<div>
 						<h2>Reports</h2>
 						<label style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-							<input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} />
+							<span>From</span>
+							<input type="month" value={selectedStartMonth} onChange={(e) => setSelectedStartMonth(e.target.value)} />
+							<span>To</span>
+							<input type="month" value={selectedEndMonth} onChange={(e) => setSelectedEndMonth(e.target.value)} />
 						</label>
 						<div className="dual-charts">
 							<div className="chart-block">
