@@ -7,6 +7,8 @@ from src.exceptions import *
 
 load_dotenv()
 
+#To-Do: build tests
+
 class ReturnType(Enum):
     JSON = 1
 
