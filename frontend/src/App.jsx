@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import { Line, Pie } from 'react-chartjs-2'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Filler } from 'chart.js'
 
-ChartJS.register(ArcElement, Tooltip, Legend)
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Filler)
 
 function App() {
 	const [username, setusername] = useState('')
@@ -56,6 +56,49 @@ function App() {
 		return {
 			labels,
 			datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderColor: '#fff', borderWidth: 1 }],
+		}
+	}
+
+	function buildHistoryData(monthlyReport = {}) {
+		if (!monthlyReport || typeof monthlyReport !== 'object') return null
+
+		const hasCategoryData = (value) => value && typeof value === 'object' && Object.keys(value).length > 0
+
+		const labels = Object.keys(monthlyReport).filter((month) => {
+			const monthData = monthlyReport?.[month]
+			if (!monthData || typeof monthData !== 'object') return false
+
+			const hasTransactions =
+				hasCategoryData(monthData.purchase) ||
+				hasCategoryData(monthData.income) ||
+				hasCategoryData(monthData.transfer)
+
+			const hasNonZeroTotals =
+				Number(monthData.profit ?? 0) !== 0 ||
+				Number(monthData.gains ?? 0) !== 0 ||
+				Number(monthData.losses ?? 0) !== 0
+
+			return hasTransactions || hasNonZeroTotals
+		})
+
+		if (!labels.length) return null
+
+		const values = labels.map((month) => Number(monthlyReport?.[month]?.profit ?? 0))
+
+		return {
+			labels,
+			datasets: [
+				{
+					label: 'Profit',
+					data: values,
+					borderColor: '#0ea5e9',
+					backgroundColor: 'rgba(14, 165, 233, 0.2)',
+					tension: 0.25,
+					pointRadius: 4,
+					pointHoverRadius: 6,
+					fill: true,
+				},
+			],
 		}
 	}
 
@@ -163,8 +206,9 @@ function App() {
 				const { purchaseTotals, incomeTotals } = aggregateCategoryTotals(report)
 				const purchaseData = buildPieData(purchaseTotals, ['#0ea5e9', '#60a5fa', '#34d399', '#f97316', '#f43f5e'])
 				const incomeData = buildPieData(incomeTotals, ['#34d399', '#60a5fa', '#0ea5e9', '#f97316', '#f43f5e'])
+				const historyData = buildHistoryData(report)
 
-				return { purchaseData, incomeData, report }
+				return { purchaseData, incomeData, historyData, report }
 			} else {
 				console.warn('Backend returned non-ok', response.status)
 			}
@@ -172,50 +216,9 @@ function App() {
 			console.warn('Backend fetch failed', err)
 		}
 
-		return { purchaseData: null, incomeData: null, report: null }
+		return { purchaseData: null, incomeData: null, historyData: null, report: null }
 	}
 
-    async function getHistory(monthStart = selectedStartMonth, monthEnd = selectedEndMonth) {
-        return { data: null }
-
-		const id = 1
-		const input_type = 'history'
-		const date = monthStart
-		const return_type = 'json'
-
-		const url = `${apiBaseUrl}/get-history?id=${encodeURIComponent(id)}&input_type=${encodeURIComponent(input_type)}&date=${encodeURIComponent(date)}&return_type=${encodeURIComponent(return_type)}`
-
-		try {
-			const response = await fetch(url)
-			if (response.ok) {
-				const json = await response.json()
-
-				data = null
-
-				if (report && report.purchase && typeof report.purchase === 'object' && Object.keys(report.purchase).length) {
-					const labels = Object.keys(report.purchase)
-					const values = labels.map((k) => Math.abs(Number(report.purchase[k] ?? 0)))
-					const colors = ['#0ea5e9', '#60a5fa', '#34d399', '#f97316', '#f43f5e']
-					purchaseData = { labels, datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderColor: '#fff', borderWidth: 1 }] }
-				}
-
-				if (report && report.income && typeof report.income === 'object' && Object.keys(report.income).length) {
-					const ilabels = Object.keys(report.income)
-					const ivalues = ilabels.map((k) => Math.abs(Number(report.income[k] ?? 0)))
-					const colors = ['#34d399', '#60a5fa', '#0ea5e9', '#f97316', '#f43f5e']
-					incomeData = { labels: ilabels, datasets: [{ data: ivalues, backgroundColor: colors.slice(0, ilabels.length), borderColor: '#fff', borderWidth: 1 }] }
-				}
-
-				return { data: null }
-			} else {
-				console.warn('Backend returned non-ok', response.status)
-			}
-		} catch (err) {
-			console.warn('Backend fetch failed', err)
-		}
-
-		return { data }
-	}
 
 	useEffect(() => {
 		if (!isLoggedIn || activeScreen !== 'Reports') {
@@ -229,12 +232,7 @@ function App() {
 				if (!mounted) return
 				setPurchaseChartData(res.purchaseData)
 				setIncomeChartData(res.incomeData)
-			})
-
-            mounted = true
-            getHistory(selectedStartMonth, selectedEndMonth).then((res) => {
-				if (!mounted) return
-				setHistoryChartData(res.data)
+				setHistoryChartData(res.historyData)
 			})
 
 			return () => {
