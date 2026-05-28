@@ -31,22 +31,20 @@ function App() {
 			return
 		}
 
-		// await the async login call and react to the result
-		const resp = await login()
+		const loginResponse = await login()
 
-		if (resp && resp.ok) {
+		if (loginResponse && loginResponse.ok) {
 			setError('')
 			setIsLoggedIn(true)
 			setActiveScreen('Reports')
-		} else if (resp) {
+		} else if (loginResponse) {
 			try {
-				const j = await resp.json()
-				setError(j.error || j.message || 'Login failed')
+				const loginData = await loginResponse.json()
+				setError(loginData.error || loginData.message || 'Login failed')
 			} catch (e) {
 				setError('Login failed')
 			}
 		}
-
 	}
 
 	async function login() {
@@ -65,7 +63,6 @@ function App() {
 			console.warn('Backend fetch failed', err)
 			return null
 		}
-
 	}
 
 	async function register() {
@@ -77,23 +74,22 @@ function App() {
 		}
 
 		try {
-			const response = await fetch(url, {
+			const registerResponse = await fetch(url, {
 				method: 'POST',
 				credentials: 'include',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ username: username.trim(), password, email: email?.trim() || null }),
 			})
 
-			if (response.ok) {
-				// assume backend logs in the new user
+			if (registerResponse.ok) {
 				setShowRegister(false)
 				setIsLoggedIn(true)
-				return response
+				return registerResponse
 			}
 
 			try {
-				const j = await response.json()
-				setError(j.error || j.message || 'Registration failed')
+				const registerData = await registerResponse.json()
+				setError(registerData.error || registerData.message || 'Registration failed')
 			} catch (e) {
 				setError('Registration failed')
 			}
@@ -105,7 +101,6 @@ function App() {
 		}
 	}
 
-
     async function logOut() {
 		await fetch(`${apiBaseUrl}/logout`, { method: 'POST', credentials: 'include' });
 		setIsLoggedIn(false);
@@ -113,10 +108,6 @@ function App() {
 	}
 
 	async function getMonth(month = selectedMonth) {
-		const input_type = 'month'
-		const date = month
-		const return_type = 'json'
-
 		const url = `${apiBaseUrl}/get-report?`
 
 		try {
@@ -124,7 +115,7 @@ function App() {
 				method: 'POST',
 				credentials: 'include',
 				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify({ input_type, date, return_type })
+				body: JSON.stringify({ input_type: 'month', date: selectedMonth, return_type: 'json' })
 				})
 
 			if (response.ok) {
@@ -148,7 +139,7 @@ function App() {
 					incomeData = { labels: ilabels, datasets: [{ data: ivalues, backgroundColor: colors.slice(0, ilabels.length), borderColor: '#fff', borderWidth: 1 }] }
 				}
 
-				return { date, purchaseData, incomeData, report }
+				return { selectedMonth, purchaseData, incomeData, report }
 			} else {
 				console.warn('Backend returned non-ok', response.status)
 			}
@@ -156,7 +147,7 @@ function App() {
 			console.warn('Backend fetch failed', err)
 		}
 
-		return { date, purchaseData: null, incomeData: null, report: null }
+		return { selectedMonth, purchaseData: null, incomeData: null, report: null }
 	}
 
     async function getHistory(monthStart = historyMonthOne, monthEnd = historyMonthTwo) {
@@ -206,10 +197,9 @@ function App() {
 			return
 		}
 
-
 		if (activeScreen === 'Reports') {
-			// call async loader and set charts from returned data
 			let mounted = true
+
 			getMonth(selectedMonth).then((res) => {
 				if (!mounted) return
 				setPurchaseChartData(res.purchaseData)
@@ -350,7 +340,7 @@ function App() {
 							type="username"
 							value={username}
 							onChange={(event) => setusername(event.target.value)}
-							placeholder="usrname"
+							placeholder="Enter you username"
 							autoComplete="username"
 						/>
 					</label>
@@ -366,17 +356,16 @@ function App() {
 						/>
 					</label>
 					{error ? <p className="error-message">{error}</p> : null}
-
 						{showRegister ? (
 							<>
 								<label className="field">
 									<span>Email (optional)</span>
 									<input
-										type="email"
+										type="username"
 										value={email}
 										onChange={(e) => setEmail(e.target.value)}
-										placeholder="you@example.com"
-										autoComplete="email"
+										placeholder="username"
+										autoComplete="username"
 									/>
 									</label>
 
