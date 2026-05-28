@@ -6,9 +6,11 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 function App() {
-	const [email, setEmail] = useState('')
+	const [username, setusername] = useState('')
 	const [password, setPassword] = useState('')
 	const [rememberMe, setRememberMe] = useState(true)
+	const [showRegister, setShowRegister] = useState(false)
+	const [email, setEmail] = useState('')
 	const [error, setError] = useState('')
 	const [isLoggedIn, setIsLoggedIn] = useState(false)
 	const [activeScreen, setActiveScreen] = useState('Reports')
@@ -21,38 +23,103 @@ function App() {
     const [historyMonthOne, setHistoryMonthOne] = useState(defaultMonth)
     const [historyMonthTwo, setHistoryMonthTwo] = useState(defaultMonth)
 
-	function handleSubmit(event) {
+	async function handleSubmit(event) {
 		event.preventDefault()
 
-		if (!email.trim() || !password.trim()) {
-			setError('Enter your email and password to continue.')
+		if (!username.trim() || !password.trim()) {
+			setError('Enter your username and password to continue.')
 			return
 		}
 
-		setError('')
-		setIsLoggedIn(true)
-		setActiveScreen('Reports')
+		const loginResponse = await login()
+
+		if (loginResponse && loginResponse.ok) {
+			setError('')
+			setIsLoggedIn(true)
+			setActiveScreen('Reports')
+		} else if (loginResponse) {
+			try {
+				const loginData = await loginResponse.json()
+				setError(loginData.error || loginData.message || 'Login failed')
+			} catch (e) {
+				setError('Login failed')
+			}
+		}
 	}
 
-    function logOut() {
-        setIsLoggedIn(false);
-        setEmail('');
-        setPassword('');
-    }
-
-	async function getMonth(month = selectedMonth) {
-		const id = 1
-		const input_type = 'month'
-		const date = month
-		const return_type = 'json'
-
-		const url = `${apiBaseUrl}/get-report?id=${encodeURIComponent(id)}&input_type=${encodeURIComponent(input_type)}&date=${encodeURIComponent(date)}&return_type=${encodeURIComponent(return_type)}`
+	async function login() {
+		const url = `${apiBaseUrl}/login`
 
 		try {
-			const response = await fetch(url)
+			const response = await fetch(url, {
+				method: 'POST',
+				credentials: 'include', 
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ username: username.trim(), password }),
+			})
+
+			return response
+		} catch (err) {
+			console.warn('Backend fetch failed', err)
+			return null
+		}
+	}
+
+	async function register() {
+		const url = `${apiBaseUrl}/register`
+
+		if (!username.trim() || !password) {
+			setError('Enter username and password to register')
+			return null
+		}
+
+		try {
+			const registerResponse = await fetch(url, {
+				method: 'POST',
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ username: username.trim(), password, email: email?.trim() || null }),
+			})
+
+			if (registerResponse.ok) {
+				setShowRegister(false)
+				setIsLoggedIn(true)
+				return registerResponse
+			}
+
+			try {
+				const registerData = await registerResponse.json()
+				setError(registerData.error || registerData.message || 'Registration failed')
+			} catch (e) {
+				setError('Registration failed')
+			}
+			return response
+		} catch (err) {
+			console.warn('Backend fetch failed', err)
+			setError('Registration failed')
+			return null
+		}
+	}
+
+    async function logOut() {
+		await fetch(`${apiBaseUrl}/logout`, { method: 'POST', credentials: 'include' });
+		setIsLoggedIn(false);
+		setusername('');
+	}
+
+	async function getMonth(month = selectedMonth) {
+		const url = `${apiBaseUrl}/get-report?`
+
+		try {
+			const response = await fetch(url, {
+				method: 'POST',
+				credentials: 'include',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({ input_type: 'month', date: selectedMonth, return_type: 'json' })
+				})
+
 			if (response.ok) {
 				const json = await response.json()
-				console.log('backend response', json)
 
 				const report = json?.report ?? json
 				let purchaseData = null
@@ -72,7 +139,7 @@ function App() {
 					incomeData = { labels: ilabels, datasets: [{ data: ivalues, backgroundColor: colors.slice(0, ilabels.length), borderColor: '#fff', borderWidth: 1 }] }
 				}
 
-				return { date, purchaseData, incomeData, report }
+				return { selectedMonth, purchaseData, incomeData, report }
 			} else {
 				console.warn('Backend returned non-ok', response.status)
 			}
@@ -80,7 +147,7 @@ function App() {
 			console.warn('Backend fetch failed', err)
 		}
 
-		return { date, purchaseData: null, incomeData: null, report: null }
+		return { selectedMonth, purchaseData: null, incomeData: null, report: null }
 	}
 
     async function getHistory(monthStart = historyMonthOne, monthEnd = historyMonthTwo) {
@@ -97,7 +164,6 @@ function App() {
 			const response = await fetch(url)
 			if (response.ok) {
 				const json = await response.json()
-				console.log('backend response', json)
 
 				data = null
 
@@ -127,9 +193,13 @@ function App() {
 	}
 
 	useEffect(() => {
+		if (!isLoggedIn || activeScreen !== 'Reports') {
+			return
+		}
+
 		if (activeScreen === 'Reports') {
-			// call async loader and set charts from returned data
 			let mounted = true
+
 			getMonth(selectedMonth).then((res) => {
 				if (!mounted) return
 				setPurchaseChartData(res.purchaseData)
@@ -146,10 +216,9 @@ function App() {
 				mounted = false
 			}
 		}
-	}, [selectedMonth, activeScreen])
+	}, [isLoggedIn, selectedMonth, activeScreen, historyMonthOne, historyMonthTwo])
 
-	// if (isLoggedIn) {
-    if (true) {
+	if (isLoggedIn) {
 		const screenTitle = activeScreen === 'Reports' ? 'Reports' : 'Log-Data'
 
 		return (
@@ -157,7 +226,7 @@ function App() {
 				<header className="top-bar">
 					<div>
                         <div>
-                            {email}
+                            {username}
                             <button onClick={logOut}>Sign Out</button>
                         </div>						
 					</div>
@@ -263,17 +332,16 @@ function App() {
 				<form className="login-card" onSubmit={handleSubmit} noValidate>
 					<div>
 						<h2>Sign in</h2>
-						<p className="card-copy">Use your email address and password.</p>
 					</div>
 
 					<label className="field">
-						<span>Email</span>
+						<span>username</span>
 						<input
-							type="email"
-							value={email}
-							onChange={(event) => setEmail(event.target.value)}
-							placeholder="you@example.com"
-							autoComplete="email"
+							type="username"
+							value={username}
+							onChange={(event) => setusername(event.target.value)}
+							placeholder="Enter you username"
+							autoComplete="username"
 						/>
 					</label>
 
@@ -287,31 +355,50 @@ function App() {
 							autoComplete="current-password"
 						/>
 					</label>
-
-					<div className="form-row">
-						<label className="checkbox">
-							<input
-								type="checkbox"
-								checked={rememberMe}
-								onChange={(event) => setRememberMe(event.target.checked)}
-							/>
-							<span>Remember me</span>
-						</label>
-
-						<button type="button" className="link-button">
-							Forgot password?
-						</button>
-					</div>
-
 					{error ? <p className="error-message">{error}</p> : null}
+						{showRegister ? (
+							<>
+								<label className="field">
+									<span>Email (optional)</span>
+									<input
+										type="username"
+										value={email}
+										onChange={(e) => setEmail(e.target.value)}
+										placeholder="username"
+										autoComplete="username"
+									/>
+									</label>
 
-					<button type="submit" className="primary-button">
-						Sign in
-					</button>
+								<button
+									type="button"
+									className="primary-button"
+									onClick={async () => {
+										const resp = await register()
+										if (resp && resp.ok) {
+											setError('')
+											setIsLoggedIn(true)
+											setActiveScreen('Reports')
+										}
+									}}
+								>
+									Register
+								</button>
 
-					<p className="footer-copy">
-						Demo only. Remember me is set to {rememberMe ? 'on' : 'off'}.
-					</p>
+								<button type="button" className="link-button" onClick={() => setShowRegister(false)}>
+									Cancel
+								</button>
+							</>
+						) : (
+							<>
+								<button type="submit" className="primary-button">
+									Sign in
+								</button>
+								<button type="button" className="link-button" onClick={() => setShowRegister(true)}>
+									Create account
+								</button>
+							</>
+						)}
+
 				</form>
 			</section>
 		</main>

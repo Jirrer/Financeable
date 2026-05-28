@@ -2,10 +2,10 @@ import src.getTransactions as getTransactinons
 import src.NormalizeData as normalizeData
 
 def test_run(mock_csv_file):
-    assert type(getTransactinons.run(mock_csv_file, getTransactinons.ReturnType.JSON, set())) == dict 
+    assert type(getTransactinons.run(mock_csv_file(), getTransactinons.ReturnType.JSON, set())) == dict 
 
 def test_pull_transactions(mock_csv_file):
-    good_response =  getTransactinons.pullTransactions(mock_csv_file)
+    good_response =  getTransactinons.pullTransactions(mock_csv_file())
 
     assert type(good_response) == list
     
@@ -17,7 +17,7 @@ def test_pull_transactions(mock_csv_file):
         assert type(transaction.value) == float
 
 def test_group_transactions(mock_csv_file):
-    transactions = getTransactinons.pullTransactions(mock_csv_file)
+    transactions = getTransactinons.pullTransactions(mock_csv_file())
 
     good_response = getTransactinons.groupTransactions(transactions)
 
@@ -25,7 +25,7 @@ def test_group_transactions(mock_csv_file):
         assert t.group.lower() != 'ungrouped'
 
 def test_categorize_transactions(mock_csv_file):
-    transactions = getTransactinons.pullTransactions(mock_csv_file)
+    transactions = getTransactinons.pullTransactions(mock_csv_file())
 
     transactions = getTransactinons.groupTransactions(transactions)
 
@@ -35,7 +35,7 @@ def test_categorize_transactions(mock_csv_file):
         assert t.category.lower() != 'uncategorized'
 
 def test_return_transactions(mock_csv_file):
-    transactions = getTransactinons.pullTransactions(mock_csv_file)
+    transactions = getTransactinons.pullTransactions(mock_csv_file())
 
     transactions = getTransactinons.groupTransactions(transactions)
 
@@ -46,7 +46,7 @@ def test_return_transactions(mock_csv_file):
     assert type(good_json_response) == dict
 
 def test_return_json(mock_csv_file):
-    transactions = getTransactinons.pullTransactions(mock_csv_file)
+    transactions = getTransactinons.pullTransactions(mock_csv_file())
 
     transactions = getTransactinons.groupTransactions(transactions)
 
