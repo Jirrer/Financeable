@@ -14,6 +14,8 @@ try:
 except ImportError:
     from models import db, User
 
+#To-Do: work on testing more
+#To-Do: move classifiers to lazy load so i can use testing
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
@@ -78,6 +80,12 @@ import src.getTransactions as getTransactions
 import src.uploadTransaction as uploadTransaction
 import src.pullReport as pullReport
 
+@app.route("/validUser")
+@login_required
+@limiter.limit("60 per minute; 2000 per day")
+def validUser():
+    return jsonify({"status": "success", "user": _user_payload(current_user)}), 200
+
 @app.route("/register", methods=["POST"])
 @limiter.limit("1 per day")
 def register():
@@ -106,7 +114,7 @@ def register():
     return jsonify({"status": "success", "user": _user_payload(user)}), 201
 
 @app.route("/login", methods=["POST"])
-@limiter.limit("60 per minute; 20000 per day")
+@limiter.limit("60 per minute; 2000 per day")
 def login():
     data = request.json
 
@@ -167,12 +175,12 @@ def get_transations():
 def upload_report():
     data = request.json
 
-    if 'user_id' not in data: return 'null id', 400
+    user = _user_payload(current_user)
 
     if 'transactions' not in data: return 'null transactions', 400
 
     try:
-        uploadTransaction.run(data['user_id'], data['transactions'])
+        uploadTransaction.run(int(user['id']), data['transactions'])
 
         return jsonify({"Status": "Success"}), 200
 
@@ -191,8 +199,6 @@ def get_report():
     return_type = data['return_type']
 
     user = _user_payload(current_user)
-
-    print(user)
 
     try:
         report = pullReport.run(userID=user['id'], inputType=input_type, date=date, returnType=return_type)
