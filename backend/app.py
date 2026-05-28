@@ -165,7 +165,7 @@ def get_transations():
     else:
         return jsonify({'Status': 'Fail', 'Message': "Invalid Return Type"}), 403
 
-    all_transactions = {}
+    all_transactions = []
     counter = 0
 
     # To-Do: refactor
@@ -191,7 +191,7 @@ def get_transations():
             if isinstance(t, dict):
                 t['combined_index'] = counter
 
-            all_transactions[counter] = t
+            all_transactions.append(t)
 
     return jsonify({"Status": "Success", "transactions": all_transactions}), 200
 
