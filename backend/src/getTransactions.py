@@ -1,25 +1,25 @@
-import csv, sys, io, joblib, sys
+import csv, sys, io, joblib, sys, os, pandas as pd
 
 from enum import Enum
 from pathlib import Path
 from werkzeug.datastructures import FileStorage
+from dotenv import load_dotenv
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.svm import LinearSVC
 
 import src.NormalizeData as NormalizeData
 from src.exceptions import *
-
-BASE_DIR = Path(__file__).resolve().parents[2]
-PYTHON_DIR = BASE_DIR / "python"
-if str(PYTHON_DIR) not in sys.path:
-    sys.path.insert(0, str(PYTHON_DIR))
-
-VENV_SITE_PACKAGES = BASE_DIR / "env" / "Lib" / "site-packages"
-if VENV_SITE_PACKAGES.exists() and str(VENV_SITE_PACKAGES) not in sys.path:
-    sys.path.insert(0, str(VENV_SITE_PACKAGES))
-
-CLASSIFIERS_DIR = BASE_DIR / "models\\classifiers"
+from models import Config, TESTING_MODEL
 
 # To-Do: change how models are loaded (so i can use pytest)
 # To-Do: build how internal_transfers are built
+
+class ClassifierType(Enum):
+    Transaction = 1
+    Income = 2,
+    Purchase = 3,
 
 class TransactionType(Enum):
     Income = 'income'
@@ -39,11 +39,6 @@ class IncomeType(Enum):
 class TransferType(Enum):
     Internal = 'internal'
     External = 'external'
-
-class Models(Enum):
-    Transaction = joblib.load(str(CLASSIFIERS_DIR / "TransactionClassifier.joblib"))
-    Income = joblib.load(str(CLASSIFIERS_DIR / "IncomeClassifier.joblib"))
-    Purchase = joblib.load(str(CLASSIFIERS_DIR / "PurchaseClassifier.joblib"))
  
 class Transaction:
     def __init__(self, transactionValue: float, tranasctionDate, transactionInfo):
@@ -58,6 +53,54 @@ class Transaction:
     
 class ReturnType(Enum):
     JSON = 1,
+
+load_dotenv()
+
+def buildModel(classifierType: ClassifierType):
+    match classifierType:
+        case ClassifierType.Transaction: trainingData = TESTING_MODEL().transaction
+        case ClassifierType.Income: trainingData = TESTING_MODEL().income
+        case ClassifierType.Purchase: trainingData = TESTING_MODEL().purchase
+        case _: raise NotImplemented
+
+    df = pd.DataFrame(trainingData[1:], columns=trainingData[0])
+
+    transactions = df.iloc[:, 0].tolist()
+
+    labels = df.iloc[:, 1].tolist()
+
+    stratify_labels = labels if df.iloc[:, 1].value_counts().min() >= 2 else None
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        transactions, labels, test_size=0.2, random_state=42, stratify=stratify_labels
+    )
+
+    model = Pipeline([
+        ("tfidf", TfidfVectorizer(ngram_range=(1,2))),
+        ("clf", LinearSVC(class_weight="balanced"))
+    ])
+
+    model.fit(X_train, y_train)
+
+    return model
+
+def createClassifier(classifierType: ClassifierType):
+    if Config.DEV == False:
+        match classifierType:
+            case ClassifierType.Transaction: return joblib.load(os.getenv('TRANSACTION_CLASSIFIER'))
+            case ClassifierType.Purchase: return joblib.load(os.getenv('PURCHASE_CLASSIFIER'))
+            case ClassifierType.Income: return joblib.load(os.getenv('INCOME_CLASSIFIER'))     
+            case _: raise NotImplemented
+
+    match classifierType:
+        case ClassifierType.Transaction: return buildModel(ClassifierType.Transaction)
+        case ClassifierType.Purchase: return buildModel(ClassifierType.Purchase)
+        case ClassifierType.Income: return buildModel(ClassifierType.Income)
+        case _: raise NotImplemented
+
+Transaction_Model = createClassifier(ClassifierType.Transaction)
+Income_Model = createClassifier(ClassifierType.Income)
+Purchase_Model = createClassifier(ClassifierType.Purchase)
 
 def run(csvFile: FileStorage, returnType: ReturnType, internalTransfers: set) -> bool:
     transactions = pullTransactions(csvFile)
@@ -101,10 +144,8 @@ def pullTransactions(file: FileStorage) -> list[Transaction]:
     return transactions
 
 def groupTransactions(transactions: list[Transaction]) -> list[Transaction]:
-    transactionModel = Models.Transaction.value
-
     for t in transactions:
-        t.group = transactionModel.predict([t.info])[0]
+        t.group = Transaction_Model.predict([t.info])[0]
 
         match t.group:
             case TransactionType.Income.value: t.value = abs(t.value)
@@ -112,22 +153,17 @@ def groupTransactions(transactions: list[Transaction]) -> list[Transaction]:
             case TransactionType.Transfer.value: continue
             case TransactionType.Undefined.value: raise BadTransactionType 
 
-    del transactionModel
-
     return transactions
 
 def categorizeTransactions(transactions: list[Transaction], internalTranfers: set) -> list[Transaction]:
-    incomeModel = Models.Income.value
-    purchaseModel = Models.Purchase.value
-
     for t in transactions:
         match (t.group):
             case TransactionType.Income.value: 
-                t.category = incomeModel.predict([t.info])[0]
+                t.category = Income_Model.predict([t.info])[0]
                 
             case TransactionType.Purchase.value: 
                 t.info = NormalizeData.normalizePurchase(t.info)
-                t.category = purchaseModel.predict([t.info])[0]
+                t.category = Purchase_Model.predict([t.info])[0]
 
             case TransactionType.Transfer.value: 
                 if t.info in internalTranfers:
@@ -138,8 +174,6 @@ def categorizeTransactions(transactions: list[Transaction], internalTranfers: se
 
             case _: 
                 t.category = TransactionType.Undefined.value
-
-    del incomeModel; del purchaseModel
 
     return transactions    
 
