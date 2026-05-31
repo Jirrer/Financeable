@@ -30,6 +30,8 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+        env:
+          VITE_API_PROD_URL: ${{ secrets.VITE_API_PROD_URL }}
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
