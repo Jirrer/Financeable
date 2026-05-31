@@ -14,7 +14,7 @@ function App() {
 	const [error, setError] = useState('')
 	const [isLoggedIn, setIsLoggedIn] = useState(false)
 	const [activeScreen, setActiveScreen] = useState('Reports')
-	const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+	const apiBaseUrl = import.meta.env.VITE_API_PROD_URL // change this to variable or a condition
 	const [purchseChartData, setPurchaseChartData] = useState(null)
 	const [incomeChartData, setIncomeChartData] = useState(null)
     const [historyChartData, setHistoryChartData] = useState(null)
@@ -519,7 +519,7 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 	}
 
 	async function getMonth(monthStart = selectedStartMonth, monthEnd = selectedEndMonth) {
-		const url = `${apiBaseUrl}/get-report?`
+		const url = `${apiBaseUrl}/get-report`
 		const start = monthStart <= monthEnd ? monthStart : monthEnd
 		const end = monthStart <= monthEnd ? monthEnd : monthStart
 
