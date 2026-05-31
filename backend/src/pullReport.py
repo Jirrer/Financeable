@@ -87,7 +87,7 @@ def run(userID: int, dateStartInput: str, dateEndInput: str, returnType: ReturnT
 def getDatabaseOutput(userID, date: Date):
     categories = {'income': None, 'purchase': None, 'transfer': None}
 
-    with sqlite3.connect(os.getenv('DATABASE_LOCATION ')) as connection:
+    with sqlite3.connect(os.getenv('DATABASE_LOCATION')) as connection:
         cursor = connection.cursor()
 
         for category in categories.keys():
