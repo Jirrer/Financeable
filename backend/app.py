@@ -87,7 +87,7 @@ import src.getTransactions as getTransactions
 import src.uploadTransaction as uploadTransaction
 import src.pullReport as pullReport
 
-@app.route("/validUser")
+@app.route("/valid-user")
 @login_required
 @limiter.limit("60 per minute; 2000 per day")
 def validUser():
