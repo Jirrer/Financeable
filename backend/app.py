@@ -19,7 +19,7 @@ except ImportError:
 #To-Do: move classifiers to lazy load so i can use testing
 
 
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
