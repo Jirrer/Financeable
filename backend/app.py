@@ -40,7 +40,7 @@ else:
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
-CORS(app, origins=["https://financeable.cc", "http://localhost:5173"], supports_credentials=True)
+CORS(app, origins=["https://financeable.cc", "http://localhost:5173", "https://jirrer.github.io"], supports_credentials=True)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
