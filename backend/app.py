@@ -1,6 +1,7 @@
 import os
 import logging
 
+from dotenv import load_dotenv
 from pathlib import Path
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -16,6 +17,9 @@ except ImportError:
 
 #To-Do: work on testing more
 #To-Do: move classifiers to lazy load so i can use testing
+
+
+load_dotenv()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
