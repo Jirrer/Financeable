@@ -1,9 +1,6 @@
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 
-class Config:
-    DEV = True
-
 class TESTING_MODEL():
     def __init__(self):
         self.income = (
