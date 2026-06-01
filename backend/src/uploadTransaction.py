@@ -26,13 +26,13 @@ def validUser(potentialID: int) -> bool:
         else:
             return False
 
-def runJson(userID: int, dict: dict[dict]):
-    arraysByDict = getArraysByDict(dict)
+def runJson(userID: int, data: dict[dict]):
+    transactionsByGroup = getTransactionsByGroup(data)
 
     with sqlite3.connect(os.getenv('DATABASE_LOCATION')) as connection:
         cursor = connection.cursor()
 
-        for key, val in arraysByDict.items():
+        for key, val in transactionsByGroup.items():
             query = f"""
             INSERT INTO {key} (user_id, value, date, info, category)
             VALUES ({userID}, ?, ?, ?, ?)
@@ -42,20 +42,20 @@ def runJson(userID: int, dict: dict[dict]):
 
         connection.commit()
 
-def getArraysByDict(dictInput: dict[dict]) -> dict[list[tuple]]:
+def getTransactionsByGroup(data: dict[dict]) -> dict[list[tuple]]:
     output = {'income': [], 'purchase': [], 'transfer': []}
 
-    for data in dictInput.values():
+    for transaction in data.values():
         try:
-            if data['group'].lower() not in output.keys():
+            if transaction['group'].lower() not in output.keys():
                 print('count not find group')
                 continue
 
-            output[data['group']].append((
-                data['value'],
-                data['date'],
-                data['info'],
-                data['category']
+            output[transaction['group']].append((
+                transaction['value'],
+                transaction['date'],
+                transaction['info'],
+                transaction['category']
             ))
 
         except KeyError as e:
