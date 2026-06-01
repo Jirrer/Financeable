@@ -398,8 +398,19 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 		if (!monthlyReport || typeof monthlyReport !== 'object') return null
 
 		const hasCategoryData = (value) => value && typeof value === 'object' && Object.keys(value).length > 0
+		const parseMonthLabel = (label) => {
+			const [firstPart, secondPart] = String(label).split(/[/-]/)
+			if (!firstPart || !secondPart) return { year: 0, month: 0 }
 
-		const labels = Object.keys(monthlyReport).filter((month) => {
+			if (firstPart.length === 4) {
+				return { year: Number(firstPart), month: Number(secondPart) }
+			}
+
+			return { year: Number(secondPart), month: Number(firstPart) }
+		}
+
+		const labels = Object.keys(monthlyReport)
+			.filter((month) => {
 			const monthData = monthlyReport?.[month]
 			if (!monthData || typeof monthData !== 'object') return false
 
@@ -414,26 +425,76 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 				Number(monthData.losses ?? 0) !== 0
 
 			return hasTransactions || hasNonZeroTotals
-		})
+			})
+			.sort((left, right) => {
+				const leftDate = parseMonthLabel(left)
+				const rightDate = parseMonthLabel(right)
+
+				if (leftDate.year !== rightDate.year) {
+					return leftDate.year - rightDate.year
+				}
+
+				return leftDate.month - rightDate.month
+			})
 
 		if (!labels.length) return null
 
 		const values = labels.map((month) => Number(monthlyReport?.[month]?.profit ?? 0))
+		const points = []
+		const labelMap = {}
+
+		labels.forEach((month, index) => {
+			const currentValue = values[index]
+			const x = index
+
+			points.push({ x, y: currentValue })
+			labelMap[x] = month
+
+			if (index === labels.length - 1) return
+
+			const nextValue = values[index + 1]
+			const crossesZero = (currentValue < 0 && nextValue > 0) || (currentValue > 0 && nextValue < 0)
+
+			if (!crossesZero) return
+
+			const delta = currentValue - nextValue
+			if (delta === 0) return
+
+			const zeroCrossingX = x + currentValue / delta
+			points.push({ x: zeroCrossingX, y: 0, synthetic: true })
+		})
 
 		return {
 			labels,
 			datasets: [
 				{
 					label: 'Profit',
-					data: values,
+					data: points,
 					borderColor: '#0ea5e9',
-					backgroundColor: 'rgba(14, 165, 233, 0.2)',
+					segment: {
+						borderColor: (context) => {
+							const startValue = context.p0.parsed.y
+							const endValue = context.p1.parsed.y
+
+							return startValue < 0 || endValue < 0 ? '#ef4444' : '#22c55e'
+						},
+						backgroundColor: (context) => {
+							const startValue = context.p0.parsed.y
+							const endValue = context.p1.parsed.y
+
+							return startValue < 0 || endValue < 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)'
+						},
+					},
 					tension: 0.25,
-					pointRadius: 4,
-					pointHoverRadius: 6,
+					pointRadius: (context) => (context.raw?.synthetic ? 0 : 4),
+					pointHoverRadius: (context) => (context.raw?.synthetic ? 0 : 6),
+					pointHitRadius: (context) => (context.raw?.synthetic ? 0 : 8),
+					pointBackgroundColor: (context) => (context.raw?.synthetic ? 'transparent' : context.parsed.y < 0 ? '#ef4444' : '#22c55e'),
+					pointBorderColor: (context) => (context.raw?.synthetic ? 'transparent' : context.parsed.y < 0 ? '#ef4444' : '#22c55e'),
 					fill: true,
 				},
 			],
+			labelMap,
 		}
 	}
 
@@ -663,6 +724,15 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 											options={{
 												responsive: true,
 												maintainAspectRatio: false,
+												scales: {
+													x: {
+														type: 'linear',
+														ticks: {
+															stepSize: 1,
+															callback: (value) => historyChartData?.labelMap?.[value] ?? '',
+														},
+													},
+												},
 												plugins: { legend: { position: 'bottom' } },
 											}}
 										/>
