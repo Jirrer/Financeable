@@ -33,8 +33,7 @@ class IncomeType(Enum):
     Passive = 'passive'
 
 class TransferType(Enum):
-    Internal = 'internal'
-    External = 'external'
+    Transfer = 'transfer'
  
 class Transaction:
     def __init__(self, transactionValue: float, tranasctionDate, transactionInfo):
@@ -98,12 +97,12 @@ Transaction_Model = createClassifier(ClassifierType.Transaction)
 Income_Model = createClassifier(ClassifierType.Income)
 Purchase_Model = createClassifier(ClassifierType.Purchase)
 
-def run(csvFile: FileStorage, returnType: ReturnType, internalTransfers: set) -> bool:
+def run(csvFile: FileStorage, returnType: ReturnType) -> bool:
     transactions = pullTransactions(csvFile)
 
     transactions = groupTransactions(transactions)
 
-    transactions = categorizeTransactions(transactions, internalTransfers)
+    transactions = categorizeTransactions(transactions)
 
     return returnTransactions(transactions, returnType)
 
@@ -151,7 +150,7 @@ def groupTransactions(transactions: list[Transaction]) -> list[Transaction]:
 
     return transactions
 
-def categorizeTransactions(transactions: list[Transaction], internalTranfers: set) -> list[Transaction]:
+def categorizeTransactions(transactions: list[Transaction]) -> list[Transaction]:
     for t in transactions:
         match (t.group):
             case TransactionType.Income.value: 
@@ -162,11 +161,7 @@ def categorizeTransactions(transactions: list[Transaction], internalTranfers: se
                 t.category = Purchase_Model.predict([t.info])[0]
 
             case TransactionType.Transfer.value: 
-                if t.info in internalTranfers:
-                    t.category = 'internal'
-                
-                else:
-                    t.category = 'external'
+                t.category = TransferType.Transfer.value
 
             case _: 
                 t.category = TransactionType.Undefined.value

@@ -36,7 +36,6 @@ def test_create_report(client, mock_csv_file, mock_get_transactions):
     file.stream.seek(0)
     data = {
         "returnType": "JSON",
-        "internal_transfers": ""
     }
     data["report"] = (file.stream, file.filename)
 
