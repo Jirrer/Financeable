@@ -2,7 +2,7 @@ import src.getTransactions as getTransactinons
 import src.NormalizeData as normalizeData
 
 def test_run(mock_csv_file):
-    assert type(getTransactinons.run(mock_csv_file(), getTransactinons.ReturnType.JSON, set())) == dict 
+    assert type(getTransactinons.run(mock_csv_file(), getTransactinons.ReturnType.JSON)) == dict 
 
 def test_pull_transactions(mock_csv_file):
     good_response =  getTransactinons.pullTransactions(mock_csv_file())
@@ -29,7 +29,7 @@ def test_categorize_transactions(mock_csv_file):
 
     transactions = getTransactinons.groupTransactions(transactions)
 
-    good_response = getTransactinons.categorizeTransactions(transactions, set())
+    good_response = getTransactinons.categorizeTransactions(transactions)
 
     for t in good_response:
         assert t.category.lower() != 'uncategorized'
@@ -39,7 +39,7 @@ def test_return_transactions(mock_csv_file):
 
     transactions = getTransactinons.groupTransactions(transactions)
 
-    transactions = getTransactinons.categorizeTransactions(transactions, set())
+    transactions = getTransactinons.categorizeTransactions(transactions)
 
     good_json_response = getTransactinons.returnTransactions(transactions, getTransactinons.ReturnType.JSON)
 
@@ -50,6 +50,6 @@ def test_return_json(mock_csv_file):
 
     transactions = getTransactinons.groupTransactions(transactions)
 
-    transactions = getTransactinons.categorizeTransactions(transactions, set())
+    transactions = getTransactinons.categorizeTransactions(transactions)
     
     assert type(getTransactinons.returnJson(transactions)) == dict

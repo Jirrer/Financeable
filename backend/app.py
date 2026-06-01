@@ -159,8 +159,6 @@ def get_transations():
     if not submittedFiles:
         return 'No file(s) submitted', 400
 
-    internal_transfers = set(request.form.get('internal_transfers', '').split(',')) if request.form.get('internal_transfers') else set()
-
     return_type = request.form.get('returnType', '').upper()
     if return_type == 'JSON':
         returnType = getTransactions.ReturnType.JSON
@@ -175,7 +173,7 @@ def get_transations():
     # To-Do: refactor
 
     for file in submittedFiles:
-        foundTransactions = getTransactions.run(file, returnType, internal_transfers)
+        foundTransactions = getTransactions.run(file, returnType)
 
         if isinstance(foundTransactions, dict):
             if 'transactions' in foundTransactions and isinstance(foundTransactions['transactions'], list):
