@@ -98,7 +98,7 @@ def test_get_arrays_by_dict(seeded_db):
         }
     }
 
-    arrays = uploadTransaction.getArraysByDict(dictData)
+    arrays = uploadTransaction.getTransactionsByGroup(dictData)
 
     assert 'income' in arrays and 'purchase' in arrays and 'transfer' in arrays
     assert isinstance(arrays['income'], list)

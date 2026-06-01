@@ -109,8 +109,7 @@ class TESTING_MODEL():
             ('BEST BUY            LANSING             MI', 'purchase'),
             ('WAL-MART SUPERCENTERSAINT JOHNS         MI', 'purchase'),
             ('CTLP*GREAT LAKES MUSLANSING             MI', 'purchase')
-        )
-                    
+        )                
     
 db = SQLAlchemy()
 
@@ -124,6 +123,3 @@ class User(db.Model, UserMixin):
 	
     def get_id(self):
         return str(self.id)
-    
-
-

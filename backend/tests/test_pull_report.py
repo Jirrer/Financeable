@@ -6,9 +6,9 @@ def test_run():
 def test_get_database_output():
     pass
 
-def test_returnJson():
+def test_format_for_json():
     pass
 
-def test_get_categories():
+def test_filter_by_category():
     pass
 

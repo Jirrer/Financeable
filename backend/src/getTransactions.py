@@ -1,7 +1,6 @@
-import csv, sys, io, joblib, sys, os, pandas as pd
+import csv, io, joblib, os, pandas as pd
 
-from enum import Enum
-from pathlib import Path
+from enum import Enum, auto
 from werkzeug.datastructures import FileStorage
 from dotenv import load_dotenv
 from sklearn.model_selection import train_test_split
@@ -13,13 +12,10 @@ import src.NormalizeData as NormalizeData
 from src.exceptions import *
 from models import Config, TESTING_MODEL
 
-# To-Do: change how models are loaded (so i can use pytest)
-# To-Do: build how internal_transfers are built
-
 class ClassifierType(Enum):
-    Transaction = 1
-    Income = 2,
-    Purchase = 3,
+    Transaction = auto()
+    Income = auto()
+    Purchase = auto()
 
 class TransactionType(Enum):
     Income = 'income'
@@ -52,11 +48,11 @@ class Transaction:
         return f"({self.group}) value: {self.value} | category: {self.category} | Date: {self.date} | Info: {self.info}"
     
 class ReturnType(Enum):
-    JSON = 1,
+    JSON = auto()
 
 load_dotenv()
 
-def buildModel(classifierType: ClassifierType):
+def buildDevModel(classifierType: ClassifierType):
     match classifierType:
         case ClassifierType.Transaction: trainingData = TESTING_MODEL().transaction
         case ClassifierType.Income: trainingData = TESTING_MODEL().income
@@ -93,9 +89,9 @@ def createClassifier(classifierType: ClassifierType):
             case _: raise NotImplemented
 
     match classifierType:
-        case ClassifierType.Transaction: return buildModel(ClassifierType.Transaction)
-        case ClassifierType.Purchase: return buildModel(ClassifierType.Purchase)
-        case ClassifierType.Income: return buildModel(ClassifierType.Income)
+        case ClassifierType.Transaction: return buildDevModel(ClassifierType.Transaction)
+        case ClassifierType.Purchase: return buildDevModel(ClassifierType.Purchase)
+        case ClassifierType.Income: return buildDevModel(ClassifierType.Income)
         case _: raise NotImplemented
 
 Transaction_Model = createClassifier(ClassifierType.Transaction)

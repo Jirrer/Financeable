@@ -9,7 +9,7 @@ def test_register_login_logout(client):
     assert register.status_code == 201
     assert register.get_json()["user"]["username"] == "newuser"
 
-    me_after_register = client.get("/validUser")
+    me_after_register = client.get("/valid-user")
     assert me_after_register.status_code == 200
     assert me_after_register.get_json()["user"]["username"] == "newuser"
 
