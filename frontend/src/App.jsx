@@ -14,14 +14,17 @@ function App() {
 	const [error, setError] = useState('')
 	const [isLoggedIn, setIsLoggedIn] = useState(false)
 	const [activeScreen, setActiveScreen] = useState('Reports')
-	const apiBaseUrl = import.meta.env.VITE_API_PROD_URL // change this to variable or a condition
 	const [purchseChartData, setPurchaseChartData] = useState(null)
 	const [incomeChartData, setIncomeChartData] = useState(null)
     const [historyChartData, setHistoryChartData] = useState(null)
 	const defaultMonth = new Date().toISOString().slice(0,7) // YYYY-MM
 	const [selectedStartMonth, setSelectedStartMonth] = useState(defaultMonth)
 	const [selectedEndMonth, setSelectedEndMonth] = useState(defaultMonth)
-
+	
+	const apiBaseUrl = import.meta.env.DEV
+		? import.meta.env.VITE_API_DEV_URL
+		: import.meta.env.VITE_API_PROD_URL
+	
 	function aggregateCategoryTotals(monthlyReport = {}) {
 		const months = Object.values(monthlyReport)
 		const purchaseTotals = {}
