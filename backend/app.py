@@ -10,9 +10,6 @@ from flask_limiter.util import get_remote_address
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from flask_bcrypt import Bcrypt
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
 try:
     from .models import db, User
 except ImportError:

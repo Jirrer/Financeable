@@ -53,7 +53,6 @@ class Date:
 
         return int(self.month) == int(value.month) and int(self.year) == int(value.year)
 
-
 def run(userID: int, dateStartInput: str, dateEndInput: str, returnType: ReturnType) -> dict:
     dateStart = Date(dateStartInput)
     dateEnd = Date(dateEndInput)
@@ -63,17 +62,18 @@ def run(userID: int, dateStartInput: str, dateEndInput: str, returnType: ReturnT
             case ReturnType.JSON.name: returnType = ReturnType.JSON
             case _: returnType = ReturnType.JSON
 
-    except AttributeError:
+    except AttributeError: # Defaults to JSON
         returnType = ReturnType.JSON
 
     output = {}
 
-    while True:
-        output[f'{dateStart.month}/{dateStart.year}'] = getDatabaseOutput(userID, dateStart)
+    # Essentially a 'do-while' to ensure the loop still runs when startDate and endDate are the same
+    while True: 
+        output[f'{dateStart.month}/{dateStart.year}'] = getTransactionsFromDB(userID, dateStart)
 
         match returnType:
             case ReturnType.JSON: 
-                output[f'{dateStart.month}/{dateStart.year}'] = returnJson(output[f'{dateStart.month}/{dateStart.year}'])
+                output[f'{dateStart.month}/{dateStart.year}'] = formatForJson(output[f'{dateStart.month}/{dateStart.year}'])
 
         if dateStart == dateEnd:
             return output
@@ -84,7 +84,7 @@ def run(userID: int, dateStartInput: str, dateEndInput: str, returnType: ReturnT
             dateStart.month = '01'
             dateStart.year = str(int(dateStart.year) + 1)  
 
-def getDatabaseOutput(userID, date: Date):
+def getTransactionsFromDB(userID, date: Date) -> dict:
     categories = {'income': None, 'purchase': None, 'transfer': None}
 
     with sqlite3.connect(os.getenv('DATABASE_LOCATION')) as connection:
@@ -97,7 +97,7 @@ def getDatabaseOutput(userID, date: Date):
 
     return categories
 
-def returnJson(categories: dict) -> dict:
+def formatForJson(categories: dict) -> dict:
     purchases = [x[4] for x in categories['purchase']]
     incomes = [x[4] for x in categories['income']]
     external_transfers = [x[4] for x in categories['transfer'] if x[3].lower() == 'external']
@@ -106,14 +106,14 @@ def returnJson(categories: dict) -> dict:
         'profit': sum(purchases) + sum(incomes) + sum(external_transfers),
         'losses': sum(purchases) + sum([x for x in external_transfers if x < 0]),
         'gains': sum(incomes) + sum([x for x in external_transfers if x > 0]),
-        'purchase': getCategories(categories['purchase']),
-        'income': getCategories(categories['income']),
-        'transfer': getCategories(categories['transfer'])
+        'purchase': filterByCategory(categories['purchase']),
+        'income': filterByCategory(categories['income']),
+        'transfer': filterByCategory(categories['transfer'])
     }
     
     return output
 
-def getCategories(arr: list) -> dict:
+def filterByCategory(arr: list) -> dict:
     output = {}
 
     for row in arr:
