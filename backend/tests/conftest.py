@@ -53,7 +53,7 @@ def seeded_db(test_db_path):
 
 @pytest.fixture
 def mock_get_transactions(monkeypatch):
-    def fake_run(report, returnType, internal_transfers):
+    def fake_run(report, returnType):
         return [
             {"date": "2024-01-15", "description": "Coffee Shop", "amount": -5.00}
         ]
