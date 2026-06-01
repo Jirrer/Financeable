@@ -1,4 +1,4 @@
-import csv, io, joblib, os, pandas as pd
+import csv, io, joblib, os, pandas as pd, logging
 
 from enum import Enum, auto
 from werkzeug.datastructures import FileStorage
@@ -10,7 +10,7 @@ from sklearn.svm import LinearSVC
 
 import src.NormalizeData as NormalizeData
 from src.exceptions import *
-from models import Config, TESTING_MODEL
+from models import TESTING_MODEL
 
 class ClassifierType(Enum):
     Transaction = auto()
@@ -80,18 +80,24 @@ def buildDevModel(classifierType: ClassifierType):
     return model
 
 def createClassifier(classifierType: ClassifierType):
-    if Config.DEV == False:
-        match classifierType:
-            case ClassifierType.Transaction: return joblib.load(os.getenv('TRANSACTION_CLASSIFIER'))
-            case ClassifierType.Purchase: return joblib.load(os.getenv('PURCHASE_CLASSIFIER'))
-            case ClassifierType.Income: return joblib.load(os.getenv('INCOME_CLASSIFIER'))     
-            case _: raise NotImplemented
+    if os.getenv('ENVIRONMENT_TYPE') == 'DEV':
+        logging.warning(f"Development environment - building {classifierType.name} classifier example")
 
-    match classifierType:
-        case ClassifierType.Transaction: return buildDevModel(ClassifierType.Transaction)
-        case ClassifierType.Purchase: return buildDevModel(ClassifierType.Purchase)
-        case ClassifierType.Income: return buildDevModel(ClassifierType.Income)
-        case _: raise NotImplemented
+        match classifierType:
+            case ClassifierType.Transaction: return buildDevModel(ClassifierType.Transaction)
+            case ClassifierType.Purchase: return buildDevModel(ClassifierType.Purchase)
+            case ClassifierType.Income: return buildDevModel(ClassifierType.Income)
+            case _: raise NotImplemented
+    elif os.getenv('ENVIRONMENT_TYPE') == 'PROD':
+        match classifierType:
+                case ClassifierType.Transaction: return joblib.load(os.getenv('TRANSACTION_CLASSIFIER'))
+                case ClassifierType.Purchase: return joblib.load(os.getenv('PURCHASE_CLASSIFIER'))
+                case ClassifierType.Income: return joblib.load(os.getenv('INCOME_CLASSIFIER'))     
+                case _: raise NotImplemented
+            
+    else:
+        raise NotImplemented('Invalid value inside of .env file')
+
 
 Transaction_Model = createClassifier(ClassifierType.Transaction)
 Income_Model = createClassifier(ClassifierType.Income)
