@@ -73,6 +73,7 @@ def pullTableFromDb(classifierType: ClassifierType) -> tuple[Transaction]:
     match classifierType:
         case ClassifierType.INCOME: table = 'income'
         case ClassifierType.PURCHASE: table = 'purchase'
+        case ClassifierType.TRANSFER: table = 'transfer'
         case _: raise ValueError
 
     with sqlite3.connect(database_location) as connection:
