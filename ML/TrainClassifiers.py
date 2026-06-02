@@ -25,6 +25,7 @@ class ClassifierType(Enum):
     TRANSACTION = auto()
     INCOME = auto()
     PURCHASE = auto()
+    TRANSFER = auto()
 
 class Transaction_Thresholds(Enum):
     MIN_F1          = 0.95  
@@ -52,6 +53,7 @@ def run():
 
     purchases = tuple(pullTableFromDb(ClassifierType.PURCHASE))
     incomes = tuple(pullTableFromDb(ClassifierType.INCOME))
+    transfers = tuple(pullTableFromDb(ClassifierType.TRANSFER))
 
     transactions = []
     for p in purchases:
@@ -59,7 +61,10 @@ def run():
 
     for i in incomes:
         transactions.append(Transaction('transaction', i.description, 'income')) 
-    
+
+    for t in transfers:
+        transactions.append(Transaction('transaction', i.description, 'transfer')) 
+
     print('Training - Transactions'); trainModel(ClassifierType.TRANSACTION, transactions)
     print('Training - Purchases'); trainModel(ClassifierType.PURCHASE, purchases)
     print('Training - Incomes'); trainModel(ClassifierType.INCOME, incomes)
