@@ -26,6 +26,7 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
 app.config["SESSION_COOKIE_SAMESITE"] = "None"
 app.config["SESSION_COOKIE_SECURE"] = True   # required when SameSite=None
 app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_DOMAIN"] = "financeable.cc"
 
 database_location = os.getenv("DATABASE_LOCATION")
 
