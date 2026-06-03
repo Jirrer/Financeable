@@ -615,6 +615,23 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 		return { purchaseData: null, incomeData: null, historyData: null, report: null }
 	}
 
+	useEffect(() => {
+		fetch(`${apiBaseUrl}/valid-user`, {
+			credentials: 'include'
+		})
+		.then(res => {
+			if (res.ok) return res.json()
+			throw new Error('Not logged in')
+		})
+		.then(data => {
+			setusername(data.user.username)
+			setIsLoggedIn(true)
+		})
+		.catch(() => {
+			// not logged in, do nothing
+		})
+	}, [])
+
 
 	useEffect(() => {
 		if (!isLoggedIn || activeScreen !== 'Reports') {
