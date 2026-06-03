@@ -20,6 +20,7 @@ function App() {
 	const defaultMonth = new Date().toISOString().slice(0,7) // YYYY-MM
 	const [selectedStartMonth, setSelectedStartMonth] = useState(defaultMonth)
 	const [selectedEndMonth, setSelectedEndMonth] = useState(defaultMonth)
+	const [showLogin, setShowLogin] = useState(true)
 	
 	const apiBaseUrl = import.meta.env.DEV
 		? import.meta.env.VITE_API_DEV_URL
@@ -775,81 +776,126 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 	}
 
 	return (
-		<main className="page-shell">
-			<section className="login-layout">
-				<form className="login-card" onSubmit={handleSubmit} noValidate>
-					<div>
-						<h2>Sign in</h2>
-					</div>
+		<div className="login">
+			{
+				showLogin ? (
+					<>
+						<form action="" className="login_title"></form>
+						<button onClick={() => setShowLogin(false)}>Login</button>
 
-					<label className="field">
-						<span>username</span>
-						<input
-							type="username"
-							value={username}
-							onChange={(event) => setusername(event.target.value)}
-							placeholder="Enter you username"
-							autoComplete="username"
-						/>
-					</label>
+						<div className='login_inputs'>
+							<div className='login_box'>
+								<input type='username' name='username' id='username' placeholder='Username' required></input>
+								<input type='passwored' name='password' id='password' placeholder='Password' required></input>
+								<input type='email' name='email' id='email' placeholder='emal'></input>
+							</div>
+						</div>
+					</>
+				) : (
+					<>
+						<form action="" className="login_title"></form>
+						<button onClick={() => setShowLogin(true)}>Sign Up</button>
 
-					<label className="field">
-						<span>Password</span>
-						<input
-							type="password"
-							value={password}
-							onChange={(event) => setPassword(event.target.value)}
-							placeholder="Enter your password"
-							autoComplete="current-password"
-						/>
-					</label>
-					{error ? <p className="error-message">{error}</p> : null}
-						{showRegister ? (
-							<>
-								<label className="field">
-									<span>Email (optional)</span>
-									<input
-										type="username"
-										value={email}
-										onChange={(e) => setEmail(e.target.value)}
-										placeholder="username"
-										autoComplete="username"
-									/>
-									</label>
+						<div className='register_inputs'>
+							<div className='register_box'>
+								<input type='username' name='username' id='username' placeholder='Username' required></input>
+								<input type='passwored' name='password' id='password' placeholder='Password' required></input>
+								<input type='email' name='email' id='email' placeholder='emal'></input>
+							</div>
+						</div>
+					</>
+				)
+			}
+		</div>
 
-								<button
-									type="button"
-									className="primary-button"
-									onClick={async () => {
-										const resp = await register()
-										if (resp && resp.ok) {
-											setError('')
-											setIsLoggedIn(true)
-											setActiveScreen('Reports')
-										}
-									}}
-								>
-									Register
-								</button>
 
-								<button type="button" className="link-button" onClick={() => setShowRegister(false)}>
-									Cancel
-								</button>
-							</>
-						) : (
-							<>
-								<button type="submit" className="primary-button">
-									Sign in
-								</button>
-								<button type="button" className="link-button" onClick={() => setShowRegister(true)}>
-									Create account
-								</button>
-							</>
-						)}
 
-				</form>
-			</section>
-		</main>
+
+
+
+
+
+
+
+
+
+
+
+
+
+		// 	<form className="login-card" onSubmit={handleSubmit} noValidate>
+		// 		<div>
+		// 			<h2>Sign in</h2>
+		// 		</div>
+
+		// 		<label className="login">
+		// 			<span>username</span>
+		// 			<input
+		// 				type="username"
+		// 				value={username}
+		// 				onChange={(event) => setusername(event.target.value)}
+		// 				placeholder="Enter you username"
+		// 				autoComplete="username"
+		// 			/>
+		// 			<span>Password</span>
+		// 			<input
+		// 				type="password"
+		// 				value={password}
+		// 				onChange={(event) => setPassword(event.target.value)}
+		// 				placeholder="Enter your password"
+		// 				autoComplete="current-password"
+		// 			/>
+		// 		</label>
+
+		// 		<label className="field">
+					
+		// 		</label>
+		// 		{error ? <p className="error-message">{error}</p> : null}
+		// 			{showRegister ? (
+		// 				<>
+		// 					<label className="field">
+		// 						<span>Email (optional)</span>
+		// 						<input
+		// 							type="email"
+		// 							value={email}
+		// 							onChange={(e) => setEmail(e.target.value)}
+		// 							placeholder="username"
+		// 							autoComplete="username"
+		// 						/>
+		// 						</label>
+
+		// 					<button
+		// 						type="button"
+		// 						className="primary-button"
+		// 						onClick={async () => {
+		// 							const resp = await register()
+		// 							if (resp && resp.ok) {
+		// 								setError('')
+		// 								setIsLoggedIn(true)
+		// 								setActiveScreen('Reports')
+		// 							}
+		// 						}}
+		// 					>
+		// 						Register
+		// 					</button>
+
+		// 					<button type="button" className="link-button" onClick={() => setShowRegister(false)}>
+		// 						Cancel
+		// 					</button>
+		// 				</>
+		// 			) : (
+		// 				<>
+		// 					<button type="submit" className="primary-button">
+		// 						Sign in
+		// 					</button>
+		// 					<button type="button" className="link-button" onClick={() => setShowRegister(true)}>
+		// 						Create account
+		// 					</button>
+		// 				</>
+		// 			)}
+
+		// 	</form>
+		// </section>
 	)
 
 }
