@@ -13,3 +13,62 @@ a {
     text-decoration: none;
 }
 
+.login_screen {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: clamp(1rem, 3vw, 2rem);
+}
+
+.login_screen button:hover {
+    background-color: #6495ED;
+}
+
+.login_directions {
+    display: flex;
+    gap: 1vw;
+    margin-bottom: 1%;
+    font-size: 50px;
+    
+}
+
+.login_directions button {
+    background-color: transparent;
+    font-size: 50px;
+    border: none;
+}
+
+
+.login_form {
+    position: relative;
+    width: min(450px, 100%);
+    margin-inline: clamp(0.2rem, 3vw, 1.5rem);
+    color: #fff;
+    padding: 2rem clamp(1.8rem,4vw, 2.5rem);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: clamp(0.4rem, 2vw, 1rem);
+    background: transparent;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(15px) ;
+}
+
+.login_title {
+    text-align: center;
+    font-size: clamp(1.8rem, 4vw, 2.2rem);
+    margin-bottom: 5%;
+}
+
+.login_input {
+    display: grid;
+}
+
+.login_input input {
+    background-color: transparent;
+    border-color: #fff;
+    height: 7vh;
+    text-align: center;
+    
+}
