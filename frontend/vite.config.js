@@ -11,6 +11,9 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api/, ''),
       },
+    watch: {
+      usePolling: true,
+    },
     },
   },
 })
