@@ -8,10 +8,9 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointE
 function App() {
 	const [username, setusername] = useState('')
 	const [password, setPassword] = useState('')
-	const [rememberMe, setRememberMe] = useState(true)
 	const [showRegister, setShowRegister] = useState(false)
 	const [email, setEmail] = useState('')
-	const [error, setError] = useState('')
+	const [loginError, setLoginError] = useState('')
 	const [isLoggedIn, setIsLoggedIn] = useState(false)
 	const [activeScreen, setActiveScreen] = useState('Reports')
 	const [purchseChartData, setPurchaseChartData] = useState(null)
@@ -499,90 +498,6 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 		}
 	}
 
-	async function handleSubmit(event) {
-		event.preventDefault()
-
-		if (!username.trim() || !password.trim()) {
-			setError('Enter your username and password to continue.')
-			return
-		}
-
-		const loginResponse = await login()
-
-		if (loginResponse && loginResponse.ok) {
-			setError('')
-			setIsLoggedIn(true)
-			setActiveScreen('Reports')
-		} else if (loginResponse) {
-			try {
-				const loginData = await loginResponse.json()
-				setError(loginData.error || loginData.message || 'Login failed')
-			} catch (e) {
-				setError('Login failed')
-			}
-		}
-	}
-
-	async function login() {
-		const url = `${apiBaseUrl}/login`
-
-		try {
-			const response = await fetch(url, {
-				method: 'POST',
-				credentials: 'include', 
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ username: username.trim(), password }),
-			})
-
-			return response
-		} catch (err) {
-			console.warn('Backend fetch failed', err)
-			return null
-		}
-	}
-
-	async function register() {
-		const url = `${apiBaseUrl}/register`
-
-		if (!username.trim() || !password) {
-			setError('Enter username and password to register')
-			return null
-		}
-
-		try {
-			const registerResponse = await fetch(url, {
-				method: 'POST',
-				credentials: 'include',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ username: username.trim(), password, email: email?.trim() || null }),
-			})
-
-			if (registerResponse.ok) {
-				setShowRegister(false)
-				setIsLoggedIn(true)
-				return registerResponse
-			}
-
-			try {
-				const registerData = await registerResponse.json()
-				setError(registerData.error || registerData.message || 'Registration failed')
-			} catch (e) {
-				setError('Registration failed')
-			}
-			return registerResponse
-		} catch (err) {
-			console.warn('Backend fetch failed', err)
-			setError('Registration failed')
-			return null
-		}
-	}
-
-    async function logOut() {
-		await fetch(`${apiBaseUrl}/logout`, { method: 'POST', credentials: 'include' });
-		setIsLoggedIn(false);
-		setusername('');
-	}
-
 	async function getMonth(monthStart = selectedStartMonth, monthEnd = selectedEndMonth) {
 		const url = `${apiBaseUrl}/get-report`
 		const start = monthStart <= monthEnd ? monthStart : monthEnd
@@ -775,127 +690,196 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 		)
 	}
 
+
+
+	// everything below is refactored
+
+
+
+	async function handleSubmit(event) {
+		event.preventDefault()
+
+		if (!username.trim() || !password.trim()) {
+			setLoginError('Enter your username and password to continue.')
+			return
+		}
+
+		const loginResponse = await login()
+
+		if (loginResponse && loginResponse.ok) {
+			setLoginError('')
+			setIsLoggedIn(true)
+			setActiveScreen('Reports')
+		} else if (loginResponse) {
+			try {
+				const loginData = await loginResponse.json()
+				setLoginError(loginData.error || loginData.message || 'Login failed')
+			} catch (e) {
+				setLoginError('Login failed')
+			}
+		}
+	}
+
+	async function login() {
+		const url = `${apiBaseUrl}/login`
+
+		try {
+			const response = await fetch(url, {
+				method: 'POST',
+				credentials: 'include', 
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ username: username.trim(), password }),
+			})
+
+			return response
+		} catch (err) {
+			console.warn('Backend fetch failed', err)
+			return null
+		}
+	}
+
+	async function register() {
+		const url = `${apiBaseUrl}/register`
+
+		if (!username.trim() || !password) {
+			setLoginError('Enter username and password to register')
+			return null
+		}
+
+		try {
+			const registerResponse = await fetch(url, {
+				method: 'POST',
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ username: username.trim(), password, email: email?.trim() || null }),
+			})
+
+			if (registerResponse.ok) {
+				setShowRegister(false)
+				setIsLoggedIn(true)
+				return registerResponse
+			}
+
+			try {
+				const registerData = await registerResponse.json()
+				setLoginError(registerData.error || registerData.message || 'Registration failed')
+			} catch (e) {
+				setLoginError('Registration failed')
+			}
+			return registerResponse
+		} catch (err) {
+			console.warn('Backend fetch failed', err)
+			setLoginError('Registration failed')
+			return null
+		}
+	}
+
+	async function logOut() {
+		await fetch(`${apiBaseUrl}/logout`, { method: 'POST', credentials: 'include' });
+		setIsLoggedIn(false);
+		setusername('');
+		setPassword('');
+	}
+
 	return (
-		<div className="login">
+		<div className="login_screen">
+			<div className='login_directions'>
+				<button onClick={() => setShowLogin(true)}>Login</button>
+				<p> | </p>
+				<button onClick={() => setShowLogin(false)}>Sign-Up</button>
+			</div>
 			{
 				showLogin ? (
 					<>
-						<form action="" className="login_title"></form>
-						<button onClick={() => setShowLogin(false)}>Login</button>
+						<form action="" className="login_form">
+							<h1 className='login_title'>Login</h1>
+							<div className='login_input'>
+								<input 
+									type='username'
+									name='username'
+									id='username'
+									placeholder='Username'
+									onChange={(event) => setusername(event.target.value)}
+									required>
+								</input>
 
-						<div className='login_inputs'>
-							<div className='login_box'>
-								<input type='username' name='username' id='username' placeholder='Username' required></input>
-								<input type='passwored' name='password' id='password' placeholder='Password' required></input>
-								<input type='email' name='email' id='email' placeholder='emal'></input>
+								<input 
+									type='password' 
+									name='password' 
+									id='password' 
+									placeholder='Password' 
+									onChange={(event) => setPassword(event.target.value)}
+									required>
+
+								</input>
 							</div>
-						</div>
+
+
+							<button
+									type="button"
+									className="primary-button"
+									onClick={handleSubmit}
+									>
+									Login
+							</button>
+						</form>
+
+						{loginError ? <p className="error-message">{loginError}</p> : null}
+	
 					</>
 				) : (
 					<>
-						<form action="" className="login_title"></form>
-						<button onClick={() => setShowLogin(true)}>Sign Up</button>
+						<form action="" className="login_form">
+							<h1 className='login_title'>Sign Up</h1>
+							<div className='login_input'>
+								<input
+									type='username'
+									name='username'
+									id='username'
+									placeholder='Username'
+									onChange={(event) => setusername(event.target.value)}
+									required>
+								</input>
 
-						<div className='register_inputs'>
-							<div className='register_box'>
-								<input type='username' name='username' id='username' placeholder='Username' required></input>
-								<input type='passwored' name='password' id='password' placeholder='Password' required></input>
-								<input type='email' name='email' id='email' placeholder='emal'></input>
+								<input 
+									type='password'
+									name='password'
+									id='password'
+									placeholder='Password'
+									onChange={(event) => setPassword(event.target.value)}
+									required>
+								</input>
+
+								<input
+								type='email'
+								name='email'
+								id='email'
+								onChange={(e) => setEmail(e.target.value)}
+								placeholder='emal'>
+								</input>
 							</div>
-						</div>
+
+							<button
+									type="button"
+									className="primary-button"
+									onClick={async () => {
+										const resp = await register()
+										if (resp && resp.ok) {
+											setLoginError('')
+											setIsLoggedIn(true)
+											setActiveScreen('Reports')
+										}
+									}}
+									>
+									Register
+							</button>
+						</form>
+
+						{loginError ? <p className="error-message">{loginError}</p> : null}
 					</>
 				)
 			}
 		</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		// 	<form className="login-card" onSubmit={handleSubmit} noValidate>
-		// 		<div>
-		// 			<h2>Sign in</h2>
-		// 		</div>
-
-		// 		<label className="login">
-		// 			<span>username</span>
-		// 			<input
-		// 				type="username"
-		// 				value={username}
-		// 				onChange={(event) => setusername(event.target.value)}
-		// 				placeholder="Enter you username"
-		// 				autoComplete="username"
-		// 			/>
-		// 			<span>Password</span>
-		// 			<input
-		// 				type="password"
-		// 				value={password}
-		// 				onChange={(event) => setPassword(event.target.value)}
-		// 				placeholder="Enter your password"
-		// 				autoComplete="current-password"
-		// 			/>
-		// 		</label>
-
-		// 		<label className="field">
-					
-		// 		</label>
-		// 		{error ? <p className="error-message">{error}</p> : null}
-		// 			{showRegister ? (
-		// 				<>
-		// 					<label className="field">
-		// 						<span>Email (optional)</span>
-		// 						<input
-		// 							type="email"
-		// 							value={email}
-		// 							onChange={(e) => setEmail(e.target.value)}
-		// 							placeholder="username"
-		// 							autoComplete="username"
-		// 						/>
-		// 						</label>
-
-		// 					<button
-		// 						type="button"
-		// 						className="primary-button"
-		// 						onClick={async () => {
-		// 							const resp = await register()
-		// 							if (resp && resp.ok) {
-		// 								setError('')
-		// 								setIsLoggedIn(true)
-		// 								setActiveScreen('Reports')
-		// 							}
-		// 						}}
-		// 					>
-		// 						Register
-		// 					</button>
-
-		// 					<button type="button" className="link-button" onClick={() => setShowRegister(false)}>
-		// 						Cancel
-		// 					</button>
-		// 				</>
-		// 			) : (
-		// 				<>
-		// 					<button type="submit" className="primary-button">
-		// 						Sign in
-		// 					</button>
-		// 					<button type="button" className="link-button" onClick={() => setShowRegister(true)}>
-		// 						Create account
-		// 					</button>
-		// 				</>
-		// 			)}
-
-		// 	</form>
-		// </section>
 	)
 
 }
