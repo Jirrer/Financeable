@@ -1,14 +1,32 @@
 # Finianceable
 
-## Cross platform to manage and track financial information and spending habits 
+Cross platform to manage and track financial information and spending habits 
 
-Full-Stack cross platform financial platform offering a Python backend, Flask API, and multiple supported frontend environments.
+## How it works
+### Architecture
+Financeable is a hosted service that you can access through either the website Financeable.cc or by downloading the windows desktop application. You can also self host this product as all of the source code and the database schema is open source. 
 
-## System Context
-![layer one](designs/level_1.drawio.svg)
+![layer two](images/layer_1.drawio.svg)
 
-## Containers
-![layer three](designs/level_2.drawio.svg)
+* [Website](#website)
+* [Windows Desktop](#windows-desktop)
+* [API](#api)
+* [ML Model](#ML-Model)
+* [Database](#database)
 
-## Components
-![layer two](designs/level_3.drawio..svg)
+
+
+
+## Website
+
+## Windows Desktop
+
+## API
+
+## ML Model
+
+## Database
+![Database](images/Database.svg)
+
+## Entire Diagram
+![Full Diagram](images/Entire_Diagram.drawio.svg)
