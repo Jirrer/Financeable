@@ -23,10 +23,16 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
-app.config["SESSION_COOKIE_SAMESITE"] = "None"
-app.config["SESSION_COOKIE_SECURE"] = True   # required when SameSite=None
-app.config["SESSION_COOKIE_HTTPONLY"] = True
-app.config["SESSION_COOKIE_DOMAIN"] = "financeable.cc"
+
+if os.getenv('ENVIRONMENT_TYPE') == 'DEV':
+    app.config["SESSION_COOKIE_SECURE"] = False   
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+else:
+    app.config["SESSION_COOKIE_SECURE"] = True   
+    app.config["SESSION_COOKIE_SAMESITE"] = "None"
+    app.config["SESSION_COOKIE_DOMAIN"] = "financeable.cc"
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+
 
 database_location = os.getenv("DATABASE_LOCATION")
 
