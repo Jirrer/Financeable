@@ -576,45 +576,44 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 		return (
 			<main className="app-shell">
 				<header className="top-bar">
-					<div>
-                        <div>
-                            {username}
-                            <button onClick={logOut}>Sign Out</button>
-                        </div>						
+					<div className='user-information'>
+                        {username}
+                        <button onClick={logOut}>Sign Out</button>
 					</div>
-
-					<nav className="top-bar-actions" aria-label="Dashboard screens">
-						<button
-							type="button"
-							className={`screen-button ${activeScreen === 'Reports' ? 'active' : ''}`}
-							onClick={() => setActiveScreen('Reports')}
-						>
-							Reports
-						</button>
-						<button
-							type="button"
-							className={`screen-button ${activeScreen === 'Log-Data' ? 'active' : ''}`}
-							onClick={() => setActiveScreen('Log-Data')}
-						>
-							Log Data
-						</button>
-					</nav>
 				</header>
+			
+				<nav className='nav-buttons'>
+					<button
+						type="button"
+						className={`screen-button ${activeScreen === 'Reports' ? 'active' : ''}`}
+						onClick={() => setActiveScreen('Reports')}
+					>
+						Reports
+					</button>
+					<button
+						type="button"
+						className={`screen-button ${activeScreen === 'Log-Data' ? 'active' : ''}`}
+						onClick={() => setActiveScreen('Log-Data')}
+					>
+						Log Data
+					</button>
+				</nav>
 
 				<section className="screen-card">
 					{activeScreen === 'Reports' && (
-						<div>
-						<h2>Reports</h2>
-						<label style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-							<span>From</span>
-							<input type="month" value={selectedStartMonth} onChange={(e) => setSelectedStartMonth(e.target.value)} />
-							<span>To</span>
-							<input type="month" value={selectedEndMonth} onChange={(e) => setSelectedEndMonth(e.target.value)} />
-						</label>
-						<div className="dual-charts">
-							<div className="chart-block">
+						<>
+							<h1>Reports</h1>
+							
+							<div className='date-range'>
+								<span>From</span>
+								<input type="month" value={selectedStartMonth} onChange={(e) => setSelectedStartMonth(e.target.value)} />
+								<span>To</span>
+								<input type="month" value={selectedEndMonth} onChange={(e) => setSelectedEndMonth(e.target.value)} />
+							</div>
+
+							<div className="report-charts">
 								<p className="chart-label">Purchases</p>
-								<div className="chart-container">
+								<div className="pie-chart">
 									{purchseChartData ? (
 										<Pie
 											data={purchseChartData}
@@ -628,9 +627,7 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 										<div className="empty-state">No purchase data yet.</div>
 									)}
 								</div>
-							</div>
-
-							<div className="chart-block">
+								
 								<p className="chart-label">Income</p>
 								<div className="chart-container">
 									{incomeChartData ? (
@@ -646,42 +643,42 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 										<div className="empty-state">No income data yet.</div>
 									)}
 								</div>
-							</div>
 
-                            <div className="chart-block">
-								<p className="chart-label">History</p>
-								<div className="chart-container">
-									{historyChartData ? (
-										<Line
-											data={historyChartData}
-											options={{
-												responsive: true,
-												maintainAspectRatio: false,
-												scales: {
-													x: {
-														type: 'linear',
-														ticks: {
-															stepSize: 1,
-															callback: (value) => historyChartData?.labelMap?.[value] ?? '',
+								<div className="chart-block">
+									<p className="chart-label">History</p>
+									<div className="chart-container">
+										{historyChartData ? (
+											<Line
+												data={historyChartData}
+												options={{
+													responsive: true,
+													maintainAspectRatio: false,
+													scales: {
+														x: {
+															type: 'linear',
+															ticks: {
+																stepSize: 1,
+																callback: (value) => historyChartData?.labelMap?.[value] ?? '',
+															},
 														},
 													},
-												},
-												plugins: { legend: { position: 'bottom' } },
-											}}
-										/>
-									) : (
-										<div className="empty-state">No history data yet.</div>
-									)}
+													plugins: { legend: { position: 'bottom' } },
+												}}
+											/>
+										) : (
+											<div className="empty-state">No history data yet.</div>
+										)}
+									</div>
 								</div>
 							</div>
-						</div>
-						</div>
+						</>
+						
                         
 					)}
 
 					{activeScreen === 'Log-Data' && (
 						<div>
-						<h2>Log Data</h2>
+						<h1>Log Data</h1>
 						<LogData apiBaseUrl={apiBaseUrl} />
 						</div>
 					)}
