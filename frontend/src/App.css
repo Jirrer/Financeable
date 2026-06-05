@@ -72,3 +72,69 @@ a {
     text-align: center;
     
 }
+
+.app-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.user-information {
+    display: flex;
+    justify-content: right;
+    gap: 1pc;
+    height: 5vh;
+    align-items: center;
+    font-size: xx-large;
+}
+
+.user-information button {
+    background-color: transparent;
+    border: none;
+    font-size: xx-large;
+}
+
+.user-information button:hover {
+    background-color: #6495ED;
+}
+
+.nav-buttons {
+    display: flex;
+    height: 7vh;
+}
+
+.nav-buttons button {
+    width: 100vw;
+}
+
+.nav-buttons button:hover {
+    background-color: #6495ED;
+}
+
+.screen-card h1 {
+    justify-self: center;
+    margin: 0.5pc;
+}
+
+.date-range {
+    justify-self: center;
+}
+
+/* .report-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.pie-block {
+  grid-column: span 1;
+}
+
+.chart-block {
+  grid-column: span 2;
+}
+
+.chart-container {
+  height: 300px;
+  position: relative;
+} */
