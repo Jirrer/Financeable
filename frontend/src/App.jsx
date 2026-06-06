@@ -186,7 +186,7 @@ function LogData({ apiBaseUrl }) {
 				onClick={() => inputRef.current && inputRef.current.click()}
 				role="button"
 			>
-				<p>Drop CSV/TSV/XLSX files here, or click to select.</p>
+				<p>Drop CSV/TSV/XLSX files here, or click to select</p>
 			</div>
 
 			{files.length ? (
@@ -601,52 +601,60 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 
 				<section className="screen-card">
 					{activeScreen === 'Reports' && (
-						<>
-							<h1>Reports</h1>
-							
-							<div className='date-range'>
-								<span>From</span>
-								<input type="month" value={selectedStartMonth} onChange={(e) => setSelectedStartMonth(e.target.value)} />
-								<span>To</span>
-								<input type="month" value={selectedEndMonth} onChange={(e) => setSelectedEndMonth(e.target.value)} />
+						<>							
+							<div className='date-range-container'>
+								<div className='date-range'>
+									<span>From </span>
+									<input type="month" value={selectedStartMonth} onChange={(e) => setSelectedStartMonth(e.target.value)} />
+								</div>
+								<div className='date-range'>
+									<span>To </span>
+									<input type="month" value={selectedEndMonth} onChange={(e) => setSelectedEndMonth(e.target.value)} />
+								</div>
 							</div>
 
-							<div className="report-charts">
-								<p className="chart-label">Purchases</p>
-								<div className="pie-chart">
-									{purchseChartData ? (
-										<Pie
-											data={purchseChartData}
-											options={{
-												responsive: true,
-												maintainAspectRatio: false,
-												plugins: { legend: { position: 'bottom' } },
-											}}
-										/>
-									) : (
-										<div className="empty-state">No purchase data yet.</div>
-									)}
-								</div>
-								
-								<p className="chart-label">Income</p>
-								<div className="chart-container">
-									{incomeChartData ? (
-										<Pie
-											data={incomeChartData}
-											options={{
-												responsive: true,
-												maintainAspectRatio: false,
-												plugins: { legend: { position: 'bottom' } },
-											}}
-										/>
-									) : (
-										<div className="empty-state">No income data yet.</div>
-									)}
+							<div className='reports'>
+								<div className='pie-reports-container'>
+									<div className='pie-report' id='purchase-chart'>
+										<p className="chart-label">Purchases</p>
+										<div className="pie-chart">
+											{purchseChartData ? (
+												<Pie
+													data={purchseChartData}
+													options={{
+														responsive: true,
+														maintainAspectRatio: false,
+														plugins: { legend: { position: 'right' } },
+													}}
+												/>
+											) : (
+												<div className="empty-state">No purchase data yet.</div>
+											)}
+										</div>
+									</div>
+
+									<div className='pie-report' id='purchase-chart'>
+										<p className="chart-label">Income</p>
+										<div className="pie-chart">
+											{incomeChartData ? (
+												<Pie
+													data={incomeChartData}
+													options={{
+														responsive: true,
+														maintainAspectRatio: false,
+														plugins: { legend: { position: 'right' } },
+													}}
+												/>
+											) : (
+												<div className="empty-state">No income data yet.</div>
+											)}
+										</div>
+									</div>
 								</div>
 
-								<div className="chart-block">
-									<p className="chart-label">History</p>
-									<div className="chart-container">
+								<div className="line-report">
+									<p className="chart-label">Profit History</p>
+									<div className="line-chart">
 										{historyChartData ? (
 											<Line
 												data={historyChartData}
@@ -662,11 +670,11 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 															},
 														},
 													},
-													plugins: { legend: { position: 'bottom' } },
+													plugins: { legend: { display: false } },
 												}}
 											/>
 										) : (
-											<div className="empty-state">No history data yet.</div>
+											<div className="empty-state">No profit history data yet.</div>
 										)}
 									</div>
 								</div>
@@ -678,7 +686,6 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 
 					{activeScreen === 'Log-Data' && (
 						<div>
-						<h1>Log Data</h1>
 						<LogData apiBaseUrl={apiBaseUrl} />
 						</div>
 					)}
@@ -689,7 +696,6 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 
 
 
-	// everything below is refactored
 
 
 
@@ -789,7 +795,6 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 				showLogin ? (
 					<>
 						<form action="" className="login_form">
-							<h1 className='login_title'>Login</h1>
 							<div className='login_input'>
 								<input 
 									type='username'
@@ -811,7 +816,6 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 								</input>
 							</div>
 
-
 							<button
 									type="button"
 									className="primary-button"
@@ -827,7 +831,6 @@ function EditableTransactionsTable({ transactions = [], onChange }) {
 				) : (
 					<>
 						<form action="" className="login_form">
-							<h1 className='login_title'>Sign Up</h1>
 							<div className='login_input'>
 								<input
 									type='username'
