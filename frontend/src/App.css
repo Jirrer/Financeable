@@ -25,6 +25,7 @@ a {
 
 .login_screen button:hover {
     background-color: #6495ED;
+    cursor: pointer;
 }
 
 .login_directions {
@@ -53,12 +54,15 @@ a {
     background: transparent;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(15px) ;
+    text-align: center;
 }
 
-.login_title {
-    text-align: center;
-    font-size: clamp(1.8rem, 4vw, 2.2rem);
-    margin-bottom: 5%;
+.login_form button {
+    border-radius: 20%;
+    background-color: transparent;
+    border: none;
+    font-size: 36px;
+    margin-top: 25px;
 }
 
 .login_input {
@@ -71,4 +75,101 @@ a {
     height: 7vh;
     text-align: center;
     
+}
+
+.app-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.user-information {
+    display: flex;
+    justify-content: right;
+    gap: 1pc;
+    height: 5vh;
+    align-items: center;
+    font-size: xx-large;
+}
+
+.user-information button {
+    background-color: transparent;
+    border: none;
+    font-size: xx-large;
+}
+
+.user-information button:hover {
+    background-color: #6495ED;
+    cursor: pointer;
+}
+
+.nav-buttons {
+    display: flex;
+    height: 7vh;
+    margin-bottom: 10px;
+}
+
+.nav-buttons button {
+    width: 100vw;
+}
+
+.nav-buttons button:hover {
+    background-color: #6495ED;
+    cursor: pointer;
+}
+
+
+.date-range-container {
+    justify-self: center;
+    display: flex;
+    gap: 1pc;
+    margin-bottom: 10px;
+}
+
+.reports {
+    display: flex;
+    flex-direction: column;
+    min-height: 72vh;
+}
+
+.date-range input {
+    height: 7vh;
+    font-size: 5vh;
+}
+
+.date-range input:hover {
+    background-color: #6495ED;
+    cursor: pointer;
+}
+
+.date-range span {
+    font-size: 5vh;
+}
+
+.pie-reports-container {
+    display: flex;
+    max-width: 100vw;
+}
+
+.pie-report {
+    width: 100vw;
+}
+
+.pie-chart {
+    min-height: 36vh;
+}
+
+.line-chart {
+    min-height: 36vh;
+}
+
+.drop-zone {
+    margin: 10px;
+    justify-self: center;
+    font-size: xx-large;
+}
+
+.drop-zone :hover {
+    background-color: #6495ED;
+    cursor: pointer;
 }
