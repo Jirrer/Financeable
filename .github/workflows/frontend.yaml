@@ -19,7 +19,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /path/to/your/repo
+            cd Financeable
             git fetch origin
             git checkout origin/main -- frontend
             cd frontend
