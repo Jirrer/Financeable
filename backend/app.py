@@ -9,6 +9,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from flask_bcrypt import Bcrypt
+from src.exceptions import *
 
 try:
     from .models import db, User
@@ -43,6 +44,9 @@ else:
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
+
+with app.app_context():
+    db.create_all()
 
 CORS(app, origins=["https://financeable.cc", "http://localhost:5173", "https://jirrer.github.io"], supports_credentials=True)
 
@@ -180,7 +184,11 @@ def get_transations():
     # To-Do: refactor
 
     for file in submittedFiles:
-        foundTransactions = getTransactions.run(file, returnType)
+        try:
+            foundTransactions = getTransactions.run(file, returnType)
+
+        except MissingHeader:
+            return jsonify({"Status": "fail", "message": "CSV file is missing valid headers"}), 400
 
         if isinstance(foundTransactions, dict):
             if 'transactions' in foundTransactions and isinstance(foundTransactions['transactions'], list):
