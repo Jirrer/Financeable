@@ -24,7 +24,7 @@ def test_login_rejects_bad_password(client):
     response = client.post("/login", json={"username": "testuser", "password": "wrong"})
     assert response.status_code == 401
 
-def test_create_report(client, mock_csv_file, mock_get_transactions):
+def test_create_report(client, mock_valid_csv_file, mock_no_header_csv_file):
     client.post(
         "/register",
         json={"username": "newuser", "password": "secret123", "email": "new@example.com"},
@@ -32,20 +32,29 @@ def test_create_report(client, mock_csv_file, mock_get_transactions):
 
     client.post("/login", json={"username": "newuser", "password": "secret123"})
 
-    file = mock_csv_file()
+    file = mock_valid_csv_file()
     file.stream.seek(0)
     data = {
         "returnType": "JSON",
     }
     data["report"] = (file.stream, file.filename)
 
-    response = client.post("/create-report", data=data, content_type="multipart/form-data")
+    good_response = client.post("/create-report", data=data, content_type="multipart/form-data")
 
-    
-    assert response.status_code == 200
-    body = response.get_json()
+    assert good_response.status_code == 200
+    body = good_response.get_json()
     assert body["Status"] == "Success"
-    # assert body["transactions"] == mock_get_transactions(None, None, None)  
+
+    file = mock_no_header_csv_file()
+    file.stream.seek(0)
+    data = {
+        "returnType": "JSON",
+    }
+    data["report"] = (file.stream, file.filename)
+
+    missing_header_response = client.post("/create-report", data=data, content_type="multipart/form-data")
+
+    assert missing_header_response.status_code == 400
 
 def test_upload_report(client, mock_valid_user):
     client.post(

@@ -7,7 +7,7 @@ import pytest
 from werkzeug.datastructures import FileStorage
 
 @pytest.fixture
-def mock_csv_file():
+def mock_valid_csv_file():
     csv_data = """Date,Description,Amount
 2024-01-15,Coffee Shop,-5.00
 2024-01-16,Grocery Store,-45.50
@@ -21,11 +21,20 @@ def mock_csv_file():
     return _make
 
 @pytest.fixture
-def mock_csv_content():
-    return """Date,Description,Amount
+def mock_no_header_csv_file():
+    csv_data = """2024-01-15,Gas,27.32
 2024-01-15,Coffee Shop,-5.00
 2024-01-16,Grocery Store,-45.50
 """
+    def _make():
+        return FileStorage(
+            stream=io.BytesIO(csv_data.encode("utf-8")),
+            filename="test.csv",
+            content_type="text/csv",
+        )
+    return _make
+
+
 
 @pytest.fixture
 def test_db_path(tmp_path, monkeypatch):
