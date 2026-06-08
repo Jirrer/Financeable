@@ -1,11 +1,13 @@
 import src.getTransactions as getTransactinons
 import src.NormalizeData as normalizeData
+from src.exceptions import *
+import pytest
 
-def test_run(mock_csv_file):
-    assert type(getTransactinons.run(mock_csv_file(), getTransactinons.ReturnType.JSON)) == dict 
+def test_run(mock_valid_csv_file):
+    assert type(getTransactinons.run(mock_valid_csv_file(), getTransactinons.ReturnType.JSON)) == dict 
 
-def test_pull_transactions(mock_csv_file):
-    good_response =  getTransactinons.pullTransactions(mock_csv_file())
+def test_pull_transactions(mock_valid_csv_file, mock_no_header_csv_file):
+    good_response = getTransactinons.pullTransactions(mock_valid_csv_file())
 
     assert type(good_response) == list
     
@@ -16,16 +18,24 @@ def test_pull_transactions(mock_csv_file):
         assert normalizeData.isValidDate(transaction.date) == True
         assert type(transaction.value) == float
 
-def test_group_transactions(mock_csv_file):
-    transactions = getTransactinons.pullTransactions(mock_csv_file())
+    with pytest.raises(MissingHeader):
+        getTransactinons.pullTransactions(mock_no_header_csv_file())
+
+
+    # To-Do: add bad date exception
+
+
+    
+def test_group_transactions(mock_valid_csv_file):
+    transactions = getTransactinons.pullTransactions(mock_valid_csv_file())
 
     good_response = getTransactinons.groupTransactions(transactions)
 
     for t in good_response:
         assert t.group.lower() != 'ungrouped'
 
-def test_categorize_transactions(mock_csv_file):
-    transactions = getTransactinons.pullTransactions(mock_csv_file())
+def test_categorize_transactions(mock_valid_csv_file):
+    transactions = getTransactinons.pullTransactions(mock_valid_csv_file())
 
     transactions = getTransactinons.groupTransactions(transactions)
 
@@ -34,8 +44,8 @@ def test_categorize_transactions(mock_csv_file):
     for t in good_response:
         assert t.category.lower() != 'uncategorized'
 
-def test_return_transactions(mock_csv_file):
-    transactions = getTransactinons.pullTransactions(mock_csv_file())
+def test_return_transactions(mock_valid_csv_file):
+    transactions = getTransactinons.pullTransactions(mock_valid_csv_file())
 
     transactions = getTransactinons.groupTransactions(transactions)
 
@@ -45,8 +55,8 @@ def test_return_transactions(mock_csv_file):
 
     assert type(good_json_response) == dict
 
-def test_return_json(mock_csv_file):
-    transactions = getTransactinons.pullTransactions(mock_csv_file())
+def test_return_json(mock_valid_csv_file):
+    transactions = getTransactinons.pullTransactions(mock_valid_csv_file())
 
     transactions = getTransactinons.groupTransactions(transactions)
 

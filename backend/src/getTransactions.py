@@ -132,6 +132,9 @@ def pullTransactions(file: FileStorage) -> list[Transaction]:
         elif firstRow[index].lower() in descriptionExamples: descriptionIndex = index
         elif firstRow[index].lower() in amountExamples: amountIndex = index 
 
+    if dateIndex == -1 or descriptionIndex == -1 or amountIndex == -1:
+        raise MissingHeader
+
     transactions = []
 
     for row in reader:
