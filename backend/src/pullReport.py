@@ -7,10 +7,15 @@ from src.exceptions import *
 
 load_dotenv()
 
-#To-Do: build tests
-
 class ReturnType(Enum):
     JSON = 1
+
+class Transaction:
+    def __init__(self, group: str, value: float, description:str, category: str):
+        self.group = group
+        self.value = value
+        self.description = description
+        self.category = category
 
 class Date:
     def __init__(self, inputStr: str):
@@ -76,6 +81,9 @@ def run(userID: int, dateStartInput: str, dateEndInput: str, returnType: ReturnT
                 output[f'{dateStart.month}/{dateStart.year}'] = formatForJson(output[f'{dateStart.month}/{dateStart.year}'])
 
         if dateStart == dateEnd:
+
+            for x in output:
+                print(output[x])
             return output
 
         if int(dateStart.month) < 12:
@@ -84,52 +92,44 @@ def run(userID: int, dateStartInput: str, dateEndInput: str, returnType: ReturnT
             dateStart.month = '01'
             dateStart.year = str(int(dateStart.year) + 1)  
 
-def getTransactionsFromDB(userID, date: Date) -> dict:
+def getTransactionsFromDB(userID, date: Date) -> dict[str, tuple[Transaction]]:
     categories = {'income': None, 'purchase': None, 'transfer': None}
 
     with sqlite3.connect(os.getenv('DATABASE_LOCATION')) as connection:
         cursor = connection.cursor()
 
         for category in categories.keys():
-            categories[category] = cursor.execute(
+            databaseOutput = cursor.execute(
                 f"SELECT * FROM {category} WHERE user_id = ? AND strftime('%Y-%m', date) = ?;", (userID, f'{date.year}-{date.month}')
-                ).fetchall()    
+                ).fetchall()  
+
+            categories[category] = tuple([Transaction(category, float(output[4]), output[5], output[3]) for output in databaseOutput])
 
     return categories
 
-def formatForJson(categories: dict) -> dict:
-    purchases = [x[4] for x in categories['purchase']]
-    incomes = [x[4] for x in categories['income']]
-    external_transfers = [x[4] for x in categories['transfer'] if x[3].lower() == 'external']
+def formatForJson(categories: dict[str, tuple[Transaction]]) -> dict:
+    purchases = [purchase.value for purchase in categories['purchase']]
+    incomes = [income.value for income in categories['income']]
+    transfers = [transfer.value for transfer in categories['transfer']]
 
     output = {
-        'profit': sum(purchases) + sum(incomes) + sum(external_transfers),
-        'losses': sum(purchases) + sum([x for x in external_transfers if x < 0]),
-        'gains': sum(incomes) + sum([x for x in external_transfers if x > 0]),
+        'profit': sum(purchases) + sum(incomes) + sum(transfers),
+        'losses': sum(purchases) + sum([x for x in transfers if x < 0]),
+        'gains': sum(incomes) + sum([x for x in transfers if x > 0]),
         'purchase': filterByCategory(categories['purchase']),
         'income': filterByCategory(categories['income']),
         'transfer': filterByCategory(categories['transfer'])
     }
-    
+
     return output
 
-def filterByCategory(arr: list) -> dict:
+def filterByCategory(arr: list[Transaction]) -> dict[str, float]:
     output = {}
 
     for row in arr:
-        category = row[3]
-
-        value = row[4]
-
-        if category in output:
-            output[category] += value
+        if row.category in output:
+            output[row.category] += row.value
         else:
-            output[category] = value
+            output[row.category] = row.value
 
     return output
-
-if __name__ == "__main__":
-    test = run(1, Date('04/2026'), Date('04/2026'), None)
-
-    for x in test:
-        print(test[x])
