@@ -23,16 +23,22 @@ Click on ![layers-icon](images/layers-icon.svg) to toggle what layers are shown
 * [ML Model](#ML-Model)
 * [Database](#database)
 
-
-
-
 ## Website
+Built in React - tye frontend website is hosted
+on an aws ec2 instance (same ec2 as the API). 
 
 ## Windows Desktop
+The binary executable allows for a local application
+user experience for windows. It is built in C# with 
+the WinForm framework.
 
 ## API
+Flask API that handles business logic for both
+frontend environments.
 
 ## ML Model
+Machine learning environment for creating and testing
+TFID classification models using rhe Python package sklearn.
 
 ## Database
 ![Database](images/Database.svg)
