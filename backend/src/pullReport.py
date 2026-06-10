@@ -92,7 +92,7 @@ def run(userID: int, dateStartInput: str, dateEndInput: str, returnType: ReturnT
             dateStart.month = '01'
             dateStart.year = str(int(dateStart.year) + 1)  
 
-def getTransactionsFromDB(userID, date: Date) -> dict:
+def getTransactionsFromDB(userID, date: Date) -> dict[str, tuple[Transaction]]:
     categories = {'income': None, 'purchase': None, 'transfer': None}
 
     with sqlite3.connect(os.getenv('DATABASE_LOCATION')) as connection:
@@ -103,7 +103,7 @@ def getTransactionsFromDB(userID, date: Date) -> dict:
                 f"SELECT * FROM {category} WHERE user_id = ? AND strftime('%Y-%m', date) = ?;", (userID, f'{date.year}-{date.month}')
                 ).fetchall()  
 
-            categories[category] = [Transaction(category, float(output[4]), output[5], output[3]) for output in databaseOutput]
+            categories[category] = tuple([Transaction(category, float(output[4]), output[5], output[3]) for output in databaseOutput])
 
     return categories
 
@@ -123,7 +123,7 @@ def formatForJson(categories: dict[str, tuple[Transaction]]) -> dict:
 
     return output
 
-def filterByCategory(arr: list[Transaction]) -> dict:
+def filterByCategory(arr: list[Transaction]) -> dict[str, float]:
     output = {}
 
     for row in arr:
@@ -133,10 +133,3 @@ def filterByCategory(arr: list[Transaction]) -> dict:
             output[row.category] = row.value
 
     return output
-
-if __name__ == "__main__":
-    test = run(1, '2026-01', '06-2026', None)
-
-    for x in test:
-        print("\n\n")
-        print(test[x])
