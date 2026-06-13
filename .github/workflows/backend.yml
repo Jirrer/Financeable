@@ -22,4 +22,4 @@ jobs:
             cd Financeable
             git fetch origin
             git checkout origin/main -- backend
-            sudo systemctl status financeable
+            sudo systemctl status finianceable
