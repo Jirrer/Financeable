@@ -1,10 +1,47 @@
 import io
-import os
-import sqlite3
-from pathlib import Path
-
 import pytest
 from werkzeug.datastructures import FileStorage
+
+import app as app_module
+from models import db as _db, User
+
+
+@pytest.fixture(scope="session")
+def app():
+    app_module.app.config["TESTING"] = True
+    with app_module.app.app_context():
+        _db.create_all()
+        yield app_module.app
+        _db.drop_all()
+
+
+@pytest.fixture(autouse=True)
+def clean_db():
+    yield
+    with app_module.app.app_context():
+        _db.session.rollback()
+        _db.session.expire_all()
+        for table in reversed(_db.metadata.sorted_tables):
+            _db.session.execute(table.delete())
+        _db.session.commit()
+
+
+@pytest.fixture
+def seeded_db():
+    with app_module.app.app_context():
+        user = User(username="testuser", password="password", email="test@example.com")
+        _db.session.add(user)
+        _db.session.commit()
+    return _db
+
+
+@pytest.fixture
+def client(app):
+    with app_module.app.test_client() as c:
+        with c.session_transaction() as sess:
+            sess.clear()
+        yield c
+
 
 @pytest.fixture
 def mock_valid_csv_file():
@@ -19,6 +56,7 @@ def mock_valid_csv_file():
             content_type="text/csv",
         )
     return _make
+
 
 @pytest.fixture
 def mock_no_header_csv_file():
@@ -35,31 +73,6 @@ def mock_no_header_csv_file():
     return _make
 
 
-
-@pytest.fixture
-def test_db_path(tmp_path, monkeypatch):
-    db_path = tmp_path / "test.sqlite"
-    # set both env names used in code (case mismatch in pullReport)
-    monkeypatch.setenv("DATABASE_LOCATION", str(db_path))
-    monkeypatch.setenv("Database_Location", str(db_path))
-    return db_path
-
-@pytest.fixture
-def seeded_db(test_db_path):
-    schema_path = Path(__file__).resolve().parents[2] / "schema.sql"
-
-    with sqlite3.connect(test_db_path) as connection:
-        connection.execute("PRAGMA foreign_keys = ON")
-        connection.executescript(schema_path.read_text(encoding="utf-8"))
-        connection.execute(
-            'INSERT INTO "user" (id, username, password, email) VALUES (?, ?, ?, ?)',
-            (1, "testuser", "password", "test@example.com"),
-        )
-        connection.commit()
-
-    return test_db_path
-
-
 @pytest.fixture
 def mock_get_transactions(monkeypatch):
     def fake_run(report, returnType):
@@ -73,16 +86,6 @@ def mock_get_transactions(monkeypatch):
 
 @pytest.fixture
 def mock_valid_user(monkeypatch):
-    # Patch uploadTransaction.validUser to avoid DB binding issues in tests
     import src.uploadTransaction as ut
     monkeypatch.setattr(ut, "validUser", lambda uid: True)
     return True
-
-
-@pytest.fixture
-def client(seeded_db):
-    # create a Flask test client that uses the seeded test database
-    import backend.app as app_module
-    app_module.app.config["TESTING"] = True
-    with app_module.app.test_client() as client:
-        yield client

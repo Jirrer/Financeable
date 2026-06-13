@@ -58,8 +58,9 @@ bcrypt = Bcrypt(app)
 @login_manager.user_loader
 def load_user(id):
     try:
-        return db.session.get(User, int(id)) if id else None
-    except (TypeError, ValueError):
+        user = db.session.get(User, int(id)) if id else None
+        return user
+    except Exception:
         return None
 
 def _user_payload(user):

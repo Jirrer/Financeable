@@ -1,6 +1,7 @@
-import sqlite3, os
-
 from dotenv import load_dotenv
+from sqlalchemy import text, union_all, select, literal
+
+from models import *
 
 load_dotenv()
 
@@ -17,30 +18,36 @@ def run(userID: int) -> dict:
     return output
 
 def pullAllData(userID: int):
-    with sqlite3.connect(os.getenv('DATABASE_LOCATION')) as connection:
-        cursor = connection.cursor()
+    purchases = select(
+        literal('purchase').label('type'),
+        Purchase.id,
+        Purchase.date,
+        Purchase.category,
+        Purchase.value,
+        Purchase.info
+    ).where(Purchase.user_id == userID)
 
-        query = '''
-            SELECT 'purchase' AS type, p.id, p.date, p.category, p.value, p.info
-            FROM purchase p
-            WHERE p.user_id = ?
+    incomes = select(
+        literal('income').label('type'),
+        Income.id,
+        Income.date,
+        Income.category,
+        Income.value,
+        Income.info
+    ).where(Income.user_id == userID)
 
-            UNION ALL
+    transfers = select(
+        literal('transfer').label('type'),
+        Transfer.id,
+        Transfer.date,
+        Transfer.category,
+        Transfer.value,
+        Transfer.info
+    ).where(Transfer.user_id == userID)
 
-            SELECT 'income' AS type, i.id, i.date, i.category, i.value, i.info
-            FROM income i
-            WHERE i.user_id = ?
+    query = union_all(purchases, incomes, transfers).order_by(text('date DESC'))
 
-            UNION ALL
-
-            SELECT 'transfer' AS type, t.id, t.date, t.category, t.value, t.info
-            FROM transfer t
-            WHERE t.user_id = ?
-
-            ORDER BY date DESC;
-        '''
-
-        return cursor.execute(query, (userID, userID, userID)).fetchall()
+    return db.session.execute(query).fetchall()
 
 def calculateNetworth(allData: list[tuple]) -> dict:
     # cash = sum()

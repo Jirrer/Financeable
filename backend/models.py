@@ -1,5 +1,50 @@
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
+ 
+db = SQLAlchemy(session_options={"expire_on_commit": False})
+
+class User(db.Model, UserMixin):
+    __tablename__ = "user"
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(255), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), nullable=True)
+	
+    def get_id(self):
+        return str(self.id)
+    
+class Purchase(db.Model):
+    __tablename__ = "purchase"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    category = db.Column(db.String(255), nullable=False)
+    value = db.Column(db.Float, nullable=False)
+    info = db.Column(db.Text, nullable=True)
+
+
+class Income(db.Model):
+    __tablename__ = "income"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    category = db.Column(db.String(255), nullable=False)
+    value = db.Column(db.Float, nullable=False)
+    info = db.Column(db.Text, nullable=True)
+
+
+class Transfer(db.Model):
+    __tablename__ = "transfer"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    category = db.Column(db.String(255), nullable=False)
+    value = db.Column(db.Float, nullable=False)
+    info = db.Column(db.Text, nullable=True)
 
 class TESTING_MODEL():
     def __init__(self):
@@ -106,17 +151,4 @@ class TESTING_MODEL():
             ('BEST BUY            LANSING             MI', 'purchase'),
             ('WAL-MART SUPERCENTERSAINT JOHNS         MI', 'purchase'),
             ('CTLP*GREAT LAKES MUSLANSING             MI', 'purchase')
-        )                
-    
-db = SQLAlchemy()
-
-class User(db.Model, UserMixin):
-    __tablename__ = "user"
-
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(255), nullable=False)
-    password = db.Column(db.String(255), nullable=False)
-    email = db.Column(db.String(255), nullable=True)
-	
-    def get_id(self):
-        return str(self.id)
+        )    

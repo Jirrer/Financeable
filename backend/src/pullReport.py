@@ -1,9 +1,12 @@
-import sqlite3, os, re
+import re
 
 from enum import Enum
 from dotenv import load_dotenv
+from sqlalchemy import extract
 
 from src.exceptions import *
+
+from models import db, Purchase, Transfer, Income
 
 load_dotenv()
 
@@ -93,19 +96,22 @@ def run(userID: int, dateStartInput: str, dateEndInput: str, returnType: ReturnT
             dateStart.year = str(int(dateStart.year) + 1)  
 
 def getTransactionsFromDB(userID, date: Date) -> dict[str, tuple[Transaction]]:
-    categories = {'income': None, 'purchase': None, 'transfer': None}
+    categories = {'income': Income, 'purchase': Purchase, 'transfer': Transfer}
+    result = {}
 
-    with sqlite3.connect(os.getenv('DATABASE_LOCATION')) as connection:
-        cursor = connection.cursor()
+    for category, model in categories.items():
+        rows = model.query.filter(
+            model.user_id == userID,
+            extract('year', model.date) == date.year,
+            extract('month', model.date) == date.month
+        ).all()
 
-        for category in categories.keys():
-            databaseOutput = cursor.execute(
-                f"SELECT * FROM {category} WHERE user_id = ? AND strftime('%Y-%m', date) = ?;", (userID, f'{date.year}-{date.month}')
-                ).fetchall()  
+        result[category] = tuple([
+            Transaction(category, float(row.value), row.info, row.category)
+            for row in rows
+        ])
 
-            categories[category] = tuple([Transaction(category, float(output[4]), output[5], output[3]) for output in databaseOutput])
-
-    return categories
+    return result
 
 def formatForJson(categories: dict[str, tuple[Transaction]]) -> dict:
     purchases = [purchase.value for purchase in categories['purchase']]
