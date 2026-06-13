@@ -16,10 +16,6 @@ try:
 except ImportError:
     from models import db, User
 
-#To-Do: work on testing more
-#To-Do: move classifiers to lazy load so i can use testing
-
-
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 app = Flask(__name__)
