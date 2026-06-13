@@ -1,14 +1,18 @@
-import io
-import pytest
+import io, pytest, os
+
 from werkzeug.datastructures import FileStorage
+
+os.environ["DATABASE_LOCATION"] = ""
+os.environ["DATABASE_URL"] = "sqlite:///Financeable_test.db"
 
 import app as app_module
 from models import db as _db, User
 
-
 @pytest.fixture(scope="session")
 def app():
     app_module.app.config["TESTING"] = True
+    app_module.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:/// Financeable_test.db"
+        
     with app_module.app.app_context():
         _db.create_all()
         yield app_module.app
