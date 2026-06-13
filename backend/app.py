@@ -94,6 +94,7 @@ limiter = Limiter(
 import src.getTransactions as getTransactions
 import src.uploadTransaction as uploadTransaction
 import src.pullReport as pullReport
+import src.getUserData as getUserData
 
 @app.route("/valid-user")
 @login_required
@@ -252,6 +253,20 @@ def get_report():
             dateEndInput=data['date_end'], 
             returnType=data['return_type']
         )
+
+        return jsonify({'status': 'success', 'report': report}), 200
+    except Exception as e:
+        print(e)
+        return str(e), 500
+    
+@app.route("/get-user-data")
+@login_required
+@limiter.limit("60 per minute; 2000 per day")
+def get_user_data():
+    user = _user_payload(current_user)
+
+    try:
+        report = getUserData.run(userID=user['id'])
 
         return jsonify({'status': 'success', 'report': report}), 200
     except Exception as e:
