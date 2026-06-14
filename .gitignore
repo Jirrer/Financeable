@@ -9,10 +9,9 @@ data.json
 /data/*.json
 /__pycache__
 !Data Flow.pdf
-!src-tauri/tauri.conf.json
 *.png
-/old-data
 
+!/images/*.png
 
 # Logs
 logs
@@ -38,7 +37,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-/target
-Presentation Beta - John Irrer.pptx
-Presentation Outline - John Irrer.docx
