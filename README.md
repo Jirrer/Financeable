@@ -16,32 +16,40 @@ Click on ![layers-icon](images/layers-icon.svg) to toggle what layers are shown
 * l3: Components
 
 ## Areas
-
 * [Website](#website)
 * [Windows Desktop](#windows-desktop)
 * [API](#api)
 * [ML Model](#ML-Model)
 * [Database](#database)
 
-## Website
-Built in React - tye frontend website is hosted
-on an aws ec2 instance (same ec2 as the API). 
+## Frontend
+### Website
+#### Overview 
+Built in React - the frontend website is hosted on an aws ec2 instance (same ec2 as the API). 
 
-## Windows Desktop
-The binary executable allows for a local application
-user experience for windows. It is built in C# with 
-the WinForm framework.
+### Windows Desktop
+#### Overview
+The binary executable allows for a local application user experience for windows. It is built in C# with the WinForm framework.
+
+### Diagram
+![Frontend](images/Frontend.png)
 
 ## API
-Flask API that handles business logic for both
-frontend environments.
+### Overview
+Flask API that handles business logic for both frontend environments.
+
+### Diagram
+![Frontend](images/Backend.png)
 
 ## ML Model
-Machine learning environment for creating and testing
-TFID classification models using rhe Python package sklearn.
+### Overview
+Machine learning environment for creating and testing TFID classification models using rhe Python package sklearn.
+
+### Diagram
+![ML-Model](images/ML_Model.png)
 
 ## Database
-![Database](images/Database.svg)
+### Overview
 
-## Entire Diagram
-![Full Diagram](images/Entire_Diagram.drawio.svg)
+### Diagram
+![Database](images/Database.svg)

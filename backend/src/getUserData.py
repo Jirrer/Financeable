@@ -14,7 +14,6 @@ def run(userID: int) -> dict:
         "Emergency Fund": getEmergencyFund(allData)
     }
 
-
     return output
 
 def pullAllData(userID: int):
@@ -60,7 +59,7 @@ def calculateNetworth(allData: list[tuple]) -> dict:
         "Networth": networth
     }
 
-# To-Do: maybe figure out of there is more than one employer
+# To-Do: maybe figure out if there is more than one employer
 def findSalary(allData: list[tuple]):
     validPayments = [x for x in allData if x[0] == 'income' and x[3] == 'payroll']
 
