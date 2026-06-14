@@ -33,7 +33,11 @@ class Date:
         else:
             raise exceptions.BadDateInput
 
-        self.month = str(int(self.month)).zfill(2)
+        try:
+            self.month = str(int(self.month)).zfill(2)
+        
+        except ValueError:
+            raise exceptions.BadDateInput
         
     def __lt__(self, other):
         if not isinstance(other, Date):
