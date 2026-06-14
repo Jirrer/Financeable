@@ -31,13 +31,13 @@ CREATE TABLE IF NOT EXISTS "income" (
 );
 
 CREATE TABLE IF NOT EXISTS "transfer" (
-	"id" INTEGER NOT NULL,
-	"user_id" INTEGER NOT NULL,
-	"date" DATE NOT NULL,
-	"category" TEXT NOT NULL,
-	"value" REAL NOT NULL,
-	"info" TEXT,
-	PRIMARY KEY("id"),
-	FOREIGN KEY ("id") REFERENCES "user"("id")
-	ON UPDATE NO ACTION ON DELETE NO ACTION
+    "id" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "date" DATE NOT NULL,
+    "category" TEXT NOT NULL,
+    "value" REAL NOT NULL,
+    "info" TEXT,
+    PRIMARY KEY("id"),
+    FOREIGN KEY ("user_id") REFERENCES "user"("id")
+    ON UPDATE NO ACTION ON DELETE NO ACTION
 );
