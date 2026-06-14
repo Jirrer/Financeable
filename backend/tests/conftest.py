@@ -64,9 +64,23 @@ def mock_valid_csv_file():
 
 @pytest.fixture
 def mock_no_header_csv_file():
-    csv_data = """2024-01-15,Gas,27.32
-2024-01-15,Coffee Shop,-5.00
+    csv_data = """2o2o-01-15,Gas,27.32
+z0z4-01-15,Coffee Shop,-5.00
 2024-01-16,Grocery Store,-45.50
+"""
+    def _make():
+        return FileStorage(
+            stream=io.BytesIO(csv_data.encode("utf-8")),
+            filename="test.csv",
+            content_type="text/csv",
+        )
+    return _make
+
+@pytest.fixture
+def mock_bad_date_csv_file():
+    csv_data = """Date,Description,Amount
+zoz4-01-15,Coffee Shop,-5.00
+2024-o1-16,Grocery Store,-45.50
 """
     def _make():
         return FileStorage(

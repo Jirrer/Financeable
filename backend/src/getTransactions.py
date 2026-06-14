@@ -139,7 +139,7 @@ def pullTransactions(file: FileStorage) -> list[Transaction]:
 
     for row in reader:
         if not NormalizeData.isValidDate(row[dateIndex]):
-            raise ValueError #To-Do: create custom exception and handle it
+            raise exceptions.BadDateInput
 
         transactions.append(Transaction(float(row[amountIndex]), NormalizeData.formatDate(row[dateIndex]), row[descriptionIndex]))   
 

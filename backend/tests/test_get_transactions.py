@@ -6,7 +6,7 @@ import pytest
 def test_run(mock_valid_csv_file):
     assert type(getTransactinons.run(mock_valid_csv_file(), getTransactinons.ReturnType.JSON)) == dict 
 
-def test_pull_transactions(mock_valid_csv_file, mock_no_header_csv_file):
+def test_pull_transactions(mock_valid_csv_file, mock_no_header_csv_file, mock_bad_date_csv_file):
     good_response = getTransactinons.pullTransactions(mock_valid_csv_file())
 
     assert type(good_response) == list
@@ -21,10 +21,8 @@ def test_pull_transactions(mock_valid_csv_file, mock_no_header_csv_file):
     with pytest.raises(exceptions.MissingHeader):
         getTransactinons.pullTransactions(mock_no_header_csv_file())
 
-
-    # To-Do: add bad date exception
-
-
+    with pytest.raises(exceptions.BadDateInput):
+        getTransactinons.pullTransactions(mock_bad_date_csv_file())
     
 def test_group_transactions(mock_valid_csv_file):
     transactions = getTransactinons.pullTransactions(mock_valid_csv_file())
