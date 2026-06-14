@@ -1,5 +1,4 @@
-import os
-import logging
+import os, logging
 
 from dotenv import load_dotenv
 from pathlib import Path
@@ -9,12 +8,17 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from flask_bcrypt import Bcrypt
-from src.exceptions import *
+import src.exceptions as exceptions
 
 try:
     from .models import db, User
 except ImportError:
     from models import db, User
+
+import src.getTransactions as getTransactions
+import src.uploadTransaction as uploadTransaction
+import src.pullReport as pullReport
+import src.getUserData as getUserData
 
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
@@ -29,7 +33,6 @@ else:
     app.config["SESSION_COOKIE_SAMESITE"] = "None"
     app.config["SESSION_COOKIE_DOMAIN"] = "financeable.cc"
     app.config["SESSION_COOKIE_HTTPONLY"] = True
-
 
 database_location = os.getenv("DATABASE_LOCATION")
 
@@ -59,7 +62,7 @@ def load_user(id):
     except Exception:
         return None
 
-def _user_payload(user):
+def _user_payload(user: User):
     return {
         "id": user.id,
         "username": user.username,
@@ -67,8 +70,10 @@ def _user_payload(user):
     }
 
 def get_user_key():
-    if current_user.is_authenticated:
-        return f"user:{current_user.id}"
+    currentUser:User = current_user
+
+    if currentUser.is_authenticated:
+        return f"user:{currentUser.id}"
     
     return f"ip:{get_remote_address()}"
 
@@ -87,11 +92,6 @@ limiter = Limiter(
     default_limits=["30 per minute"],
     storage_uri=storage_uri,
 )
-
-import src.getTransactions as getTransactions
-import src.uploadTransaction as uploadTransaction
-import src.pullReport as pullReport
-import src.getUserData as getUserData
 
 @app.route("/valid-user")
 @login_required
@@ -150,7 +150,6 @@ def login():
     login_user(user)
     return jsonify({"status": "success", "user": _user_payload(user)}), 200
 
-
 @app.route("/logout", methods=["POST"])
 @limiter.limit("60 per minute; 20000 per day")
 def logout():
@@ -163,52 +162,48 @@ def logout():
 @login_required
 @limiter.limit("10 per minute; 200 per day")
 def get_transations():
-    submittedFiles = request.files.getlist('report')
+    try:
+        submittedFiles = request.files.getlist('report')
 
-    if not submittedFiles:
-        return 'No file(s) submitted', 400
+        if not submittedFiles:
+            return 'No file(s) submitted', 400
 
-    return_type = request.form.get('returnType', '').upper()
-    if return_type == 'JSON':
-        returnType = getTransactions.ReturnType.JSON
-    elif return_type == '':
+        return_type = request.form.get('returnType', '').upper()
+
+        match (return_type.upper()):
+            case getTransactions.ReturnType.JSON.name:
+                listOfAllTransactions:list = [getTransactions.run(file, getTransactions.ReturnType.JSON) for file in submittedFiles]
+
+            case _: raise exceptions.BadReturnType
+
+        output = []
+
+        for transactions in listOfAllTransactions:
+            match (return_type):
+                case getTransactions.ReturnType.JSON.name:
+                    if not all(isinstance(v, dict) for v in transactions.values()):
+                        raise NotImplemented
+                    
+                    for transaction in list(transactions.values()):
+                        output.append(transaction) 
+
+                case '': raise exceptions.NullReturnType
+
+                case _: raise exceptions.BadReturnType
+
+        return jsonify({"Status": "Success", "transactions": output}), 200
+
+    except exceptions.MissingHeader:
+        return jsonify({"Status": "fail", "message": "CSV file is missing valid headers"}), 400
+    
+    except exceptions.BadDateInput:
+        return jsonify({"Status": "fail", "message": "CSV file has a bad date input"}), 400
+    
+    except exceptions.NullReturnType:
         return jsonify({'Status': 'Fail', 'Message': "Null Return Type"}), 404
-    else:
+    
+    except exceptions.BadReturnType:
         return jsonify({'Status': 'Fail', 'Message': "Invalid Return Type"}), 403
-
-    all_transactions = []
-    counter = 0
-
-    # To-Do: refactor
-
-    for file in submittedFiles:
-        try:
-            foundTransactions = getTransactions.run(file, returnType)
-
-        except MissingHeader:
-            return jsonify({"Status": "fail", "message": "CSV file is missing valid headers"}), 400
-
-        if isinstance(foundTransactions, dict):
-            if 'transactions' in foundTransactions and isinstance(foundTransactions['transactions'], list):
-                transactions = foundTransactions['transactions']
-            elif all(isinstance(v, dict) for v in foundTransactions.values()):
-                transactions = list(foundTransactions.values())
-            else:
-                transactions = [foundTransactions]
-
-        elif isinstance(foundTransactions, list):
-            transactions = foundTransactions
-        else:
-            transactions = [foundTransactions] if foundTransactions else []
-
-        for t in transactions:
-            counter += 1
-            if isinstance(t, dict):
-                t['combined_index'] = counter
-
-            all_transactions.append(t)
-
-    return jsonify({"Status": "Success", "transactions": all_transactions}), 200
 
 @app.route("/upload-report", methods=['POST'])
 @login_required
@@ -237,13 +232,13 @@ def get_report():
 
     user = _user_payload(current_user)
 
-    if 'date_start' not in data:
-        return jsonify({'Status': 'Fail', 'Message': "Null Start Date"}), 400
-    
-    if 'date_end' not in data:
-        return jsonify({'Status': 'Fail', 'Message': "Null End Date"}), 400
-
     try:
+        if 'date_start' not in data:
+            raise exceptions.NullDateInput
+        
+        if 'date_end' not in data:
+            raise exceptions.NullDateInput
+
         report = pullReport.run(
             userID=user['id'], 
             dateStartInput=data['date_start'], 
@@ -252,11 +247,14 @@ def get_report():
         )
 
         return jsonify({'status': 'success', 'report': report}), 200
-    except Exception as e:
-        print(e)
-        return str(e), 500
     
-@app.route("/get-user-data")
+    except exceptions.NullDateInput:
+        return jsonify({'Status': 'Fail', 'Message': "Null Start or end Date"}), 400
+    
+    except exceptions.BadDateInput:
+        return jsonify({'Status': 'Fail', 'Message': "Invalid Date Format"}), 400
+
+@app.route("/get-user-data") # To-Do: needs refactoring
 @login_required
 @limiter.limit("60 per minute; 2000 per day")
 def get_user_data():

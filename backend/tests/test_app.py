@@ -94,6 +94,12 @@ def test_get_report(client):
         "return_type": "JSON"
     }
 
+    multipleMonthYear = {
+        "date_start": "2025-01",
+        "date_end": "2026-04",
+        "return_type": "JSON"
+    }
+
     missingMonth = {
         "date_end": "2026-04",
         "return_type": "JSON"
@@ -104,16 +110,35 @@ def test_get_report(client):
         "date_start": "2026-04",
         "return_type": "JSON"
     }
-    
-    goodResponse = client.post("/get-report", json=oneMonthYear)   
-    assert goodResponse.status_code == 200
 
-    body = goodResponse.get_json()
+    badDate = {
+        "date_start": "2026-04",
+        "date_end": "2O26-O4",
+        "return_type": "JSON"
+    }
+    
+    oneMonthYearResponse = client.post("/get-report", json=oneMonthYear)   
+    assert oneMonthYearResponse.status_code == 200
+
+    body = oneMonthYearResponse.get_json()
     assert body["status"] == "success"
     assert "report" in body
 
-    nullResponse = client.post("/get-report", json=missingMonth) 
-    assert nullResponse.status_code == 400
+    multipleMonthYearResponse = client.post("/get-report", json=multipleMonthYear)   
+    assert oneMonthYearResponse.status_code == 200
 
-    nullResponse = client.post("/get-report", json=missingYear) 
-    assert nullResponse.status_code == 400
+    body = multipleMonthYearResponse.get_json()
+    assert body["status"] == "success"
+    assert "report" in body
+
+    missingMonthResponse = client.post("/get-report", json=missingMonth) 
+    assert missingMonthResponse.status_code == 400
+
+    missingYearResponse = client.post("/get-report", json=missingYear)
+    assert missingYearResponse.status_code == 400
+
+    badDateResponse = client.post("/get-report", json=badDate)
+    assert badDateResponse.status_code == 400
+
+def test_get_user_data():
+    pass

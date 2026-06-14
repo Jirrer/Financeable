@@ -3,7 +3,7 @@ import sqlite3, os
 from dotenv import load_dotenv
 from datetime import date as date_type
 
-from src.exceptions import *
+import src.exceptions as exceptions
 
 from models import db, Purchase, Transfer, Income, User
 
@@ -17,13 +17,13 @@ MODEL_MAP = {
 
 def run(userID, data):
     if not validUser(userID): 
-        raise InvalidUser()
+        raise exceptions.InvalidUser()
 
     if type(data) == dict: 
         runJson(userID, data)
 
     else:
-        raise BadUploadType(f'Type ({type(data)}) is not allowed')
+        raise exceptions.BadUploadType(f'Type ({type(data)}) is not allowed')
     
 def validUser(potentialID: int) -> bool:
     return db.session.get(User, potentialID) is not None
