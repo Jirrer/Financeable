@@ -4,7 +4,7 @@ from enum import Enum
 from dotenv import load_dotenv
 from sqlalchemy import extract
 
-from src.exceptions import *
+import src.exceptions as exceptions
 
 from models import db, Purchase, Transfer, Income
 
@@ -31,7 +31,7 @@ class Date:
             self.month, self.year = splitResult[0], splitResult[1]
 
         else:
-            raise BadDateInput
+            raise exceptions.BadDateInput
 
         self.month = str(int(self.month)).zfill(2)
         

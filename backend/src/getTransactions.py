@@ -9,7 +9,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
 
 import src.NormalizeData as NormalizeData
-from src.exceptions import *
+import src.exceptions as exceptions
 from models import TESTING_MODEL
 
 class ClassifierType(Enum):
@@ -133,7 +133,7 @@ def pullTransactions(file: FileStorage) -> list[Transaction]:
         elif firstRow[index].lower() in amountExamples: amountIndex = index 
 
     if dateIndex == -1 or descriptionIndex == -1 or amountIndex == -1:
-        raise MissingHeader
+        raise exceptions.MissingHeader
 
     transactions = []
 
@@ -155,7 +155,7 @@ def groupTransactions(transactions: list[Transaction]) -> list[Transaction]:
             case TransactionType.Income.value: t.value = abs(t.value)
             case TransactionType.Purchase.value: t.value = -abs(t.value)
             case TransactionType.Transfer.value: continue
-            case TransactionType.Undefined.value: raise BadTransactionType 
+            case TransactionType.Undefined.value: raise exceptions.BadTransactionType 
 
     return transactions
 

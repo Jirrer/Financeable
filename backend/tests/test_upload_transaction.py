@@ -1,6 +1,6 @@
 import pytest
 import src.uploadTransaction as uploadTransaction
-from src.exceptions import *
+import src.exceptions as exceptions
 
 import app as app_module
 from models import db, Purchase, Transfer
@@ -14,10 +14,10 @@ def test_run(seeded_db):
     }
 
     with app_module.app.app_context():
-        with pytest.raises(BadUploadType):
+        with pytest.raises(exceptions.BadUploadType):
             uploadTransaction.run(1, list(dictData))
 
-        with pytest.raises(InvalidUser):
+        with pytest.raises(exceptions.InvalidUser):
             uploadTransaction.run(2, dictData)
 
 
