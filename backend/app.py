@@ -221,7 +221,8 @@ def upload_report():
         return jsonify({"Status": "Success"}), 200
 
     except Exception as e:
-        print(e)
+        import traceback
+        traceback.print_exc()
         return str(e), 500
     
 @app.route("/get-report", methods=["POST"])
