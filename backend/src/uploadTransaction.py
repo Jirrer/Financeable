@@ -45,7 +45,7 @@ def validateData(data, dataType: DataType) -> None | exceptions.BadUploadData | 
         case _: raise Exception
 
 def validateData_json(data):
-    databse_columns = ('value', 'date', 'info', 'group', 'category') 
+    databse_columns = ('value', 'date', 'info', 'group', 'category', 'combined_index')
 
     for transaction in data.values():
         for key in transaction.keys():
