@@ -216,6 +216,9 @@ def upload_report():
     if 'transactions' not in data: return 'null transactions', 400
 
     try:
+        for t in data['transactions'].values():
+            t.pop('combined_index', None)
+            
         uploadTransaction.run(int(user['id']), data['transactions'])
 
         return jsonify({"Status": "Success"}), 200
